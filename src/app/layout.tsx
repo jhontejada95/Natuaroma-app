@@ -1,86 +1,93 @@
-import type { Metadata } from "next";
-import { Inter, Manrope } from "next/font/google";
-import "./globals.css";
-import { CartButton } from "@/components/CartButton";
-import { CartDrawer } from "@/components/CartDrawer";
-import { Leaf } from "lucide-react";
+import type { Metadata } from 'next'
+import { Noto_Serif, Be_Vietnam_Pro } from 'next/font/google'
+import './globals.css'
+import { CartButton } from '@/components/CartButton'
+import { CartDrawer } from '@/components/CartDrawer'
 
-const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
-const manrope = Manrope({ variable: "--font-manrope", subsets: ["latin"] });
+const notoSerif = Noto_Serif({
+  subsets: ['latin'],
+  weight: ['400', '600'],
+  style: ['normal', 'italic'],
+  variable: '--font-display',
+  display: 'swap',
+})
+
+const beVietnamPro = Be_Vietnam_Pro({
+  subsets: ['latin'],
+  weight: ['400', '600'],
+  variable: '--font-body',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
-  title: "Natuaroma | Tu Ritual de Bienestar",
-  description: "Tienda premium de bienestar, aromaterapia y autocuidado consciente.",
-};
+  title: 'Natuaroma — Bienestar que se siente, se respira y se vive',
+  description: 'Aceites esenciales, velas y aromas artesanales 100% naturales. Hecho en Colombia.',
+}
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={`${inter.variable} ${manrope.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col font-sans text-foreground bg-background">
-        {/* Barra superior */}
-        <div className="bg-primary text-surface text-xs text-center py-2 px-4 tracking-wide font-medium">
-          Envios a todo Colombia &middot; Ingredientes 100% naturales &middot; Compra segura
-        </div>
+    <html lang="es" className={notoSerif.variable + ' ' + beVietnamPro.variable}>
+      <body className="bg-background text-on-surface antialiased overflow-x-hidden" style={{ fontFamily: 'var(--font-body), sans-serif' }}>
 
-        <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-outline-variant">
-          <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-            <a href="/" className="flex items-center gap-2 group">
-              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center group-hover:bg-primary-container transition-colors">
-                <Leaf size={16} className="text-surface" />
-              </div>
-              <span className="font-display font-bold text-2xl tracking-tight text-primary">Natuaroma</span>
+        {/* Floating glassmorphism nav */}
+        <header className="fixed top-4 left-4 right-4 z-50 max-w-7xl mx-auto">
+          <div className="rounded-full px-6 py-3 bg-surface/80 backdrop-blur-md ambient-shadow flex justify-between items-center">
+            <a href="/" className="text-xl font-display font-semibold tracking-tight text-primary italic">
+              Natuaroma
             </a>
-
-            <nav className="hidden md:flex items-center gap-8">
-              <a href="/tienda" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors">Tienda</a>
-              <a href="#bienestar" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors">Wellness App</a>
-              <a href="#nosotros" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors">Nosotros</a>
+            <nav className="hidden md:flex gap-8 items-center">
+              {[
+                { href: '/tienda', label: 'Tienda' },
+                { href: '/#wellness', label: 'Wellness' },
+                { href: '/#nosotros', label: 'Nosotros' },
+              ].map(({ href, label }) => (
+                <a
+                  key={href}
+                  href={href}
+                  className="text-sm text-on-surface-variant hover:text-primary transition-colors duration-300 font-body"
+                >
+                  {label}
+                </a>
+              ))}
             </nav>
-
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
               <CartButton />
             </div>
           </div>
         </header>
 
-        <main className="flex-1">{children}</main>
+        <CartDrawer />
 
-        <footer className="bg-primary text-surface/80 mt-20">
-          <div className="max-w-7xl mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-3 gap-10">
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 bg-surface/20 rounded-full flex items-center justify-center">
-                  <Leaf size={14} className="text-surface" />
-                </div>
-                <span className="font-display font-bold text-xl text-surface">Natuaroma</span>
-              </div>
-              <p className="text-sm leading-relaxed text-surface/70">
-                Esencias, aromas y productos naturales para acompanar tu cuerpo, tu hogar y tus sentidos.
-              </p>
+        <main className="pt-20">
+          {children}
+        </main>
+
+        {/* Wave footer */}
+        <footer className="footer-wave mt-24 bg-primary-container text-inverse-on-surface">
+          <div className="max-w-7xl mx-auto px-8 pt-20 pb-12 flex flex-col md:flex-row justify-between items-center gap-8">
+            <div>
+              <p className="text-2xl font-display font-semibold italic text-inverse-on-surface">Natuaroma</p>
+              <p className="text-sm text-inverse-on-surface/50 mt-1">Bienestar artesanal. Hecho en Colombia.</p>
             </div>
-            <div className="space-y-3">
-              <h4 className="font-display font-semibold text-surface text-sm uppercase tracking-widest">Navegacion</h4>
-              <ul className="space-y-2 text-sm">
-                <li><a href="/tienda" className="hover:text-surface transition-colors">Tienda</a></li>
-                <li><a href="#bienestar" className="hover:text-surface transition-colors">Wellness App</a></li>
-                <li><a href="#nosotros" className="hover:text-surface transition-colors">Nosotros</a></li>
-              </ul>
-            </div>
-            <div className="space-y-3">
-              <h4 className="font-display font-semibold text-surface text-sm uppercase tracking-widest">Contacto</h4>
-              <ul className="space-y-2 text-sm">
-                <li className="text-surface/70">hola@natuaroma.com</li>
-                <li className="text-surface/70">Colombia - Envios nacionales</li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-surface/10 py-6 text-center text-xs text-surface/50">
-            &copy; {new Date().getFullYear()} Natuaroma. Todos los derechos reservados.
+            <nav className="flex flex-wrap justify-center gap-6">
+              {[
+                { href: '/tienda', label: 'Tienda' },
+                { href: '/#wellness', label: 'Wellness App' },
+                { href: '/#nosotros', label: 'Nosotros' },
+                { href: 'mailto:natuaroma@gmail.com', label: 'Contacto' },
+              ].map(({ href, label }) => (
+                <a key={href} href={href} className="text-sm italic text-inverse-on-surface/60 hover:text-inverse-on-surface transition-colors duration-300">
+                  {label}
+                </a>
+              ))}
+            </nav>
+            <p className="text-sm italic text-inverse-on-surface/40">
+              &copy; 2025 Natuaroma. Cultivado en Colombia.
+            </p>
           </div>
         </footer>
 
-        <CartDrawer />
       </body>
     </html>
-  );
+  )
 }

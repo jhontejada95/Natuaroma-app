@@ -1,16 +1,11 @@
 'use client'
 
-import { useState } from 'react'
-import { ShoppingBag, Check } from 'lucide-react'
 import { useCartStore } from '@/lib/store/cartStore'
+import { useState } from 'react'
+import { Check } from 'lucide-react'
 
 type Props = {
-  product: {
-    id: string
-    name: string
-    price: number
-    image_url?: string
-  }
+  product: { id: string; name: string; price: number; image_url: string }
   disabled?: boolean
 }
 
@@ -18,35 +13,38 @@ export function AddToCartButton({ product, disabled }: Props) {
   const addItem = useCartStore((state) => state.addItem)
   const [added, setAdded] = useState(false)
 
-  function handleAdd() {
-    if (disabled) return
+  function handleClick() {
     addItem(product)
     setAdded(true)
-    setTimeout(() => setAdded(false), 2000)
+    setTimeout(() => setAdded(false), 1800)
+  }
+
+  if (disabled) {
+    return (
+      <button
+        disabled
+        className="w-full py-4 rounded-full font-body text-xs uppercase tracking-widest bg-surface-dim text-outline cursor-not-allowed"
+      >
+        Agotado
+      </button>
+    )
   }
 
   return (
     <button
-      onClick={handleAdd}
-      disabled={disabled}
-      className={`w-full flex items-center justify-center gap-3 py-4 px-8 rounded-full font-semibold text-lg transition-all duration-200 shadow-md ${
-        disabled
-          ? 'bg-surface-container text-foreground/40 cursor-not-allowed shadow-none'
-          : added
-          ? 'bg-primary-fixed text-primary-fixed-variant shadow-none'
-          : 'bg-primary text-surface hover:bg-primary-container hover:shadow-xl hover:-translate-y-0.5'
-      }`}
+      onClick={handleClick}
+      className={'w-full py-4 rounded-full font-body text-xs uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 ambient-shadow ' +
+        (added
+          ? 'bg-primary-fixed text-primary'
+          : 'bg-secondary-fixed text-on-secondary-fixed hover:bg-secondary hover:text-on-secondary hover:scale-[1.01]')}
     >
       {added ? (
         <>
-          <Check size={20} />
-          ¡Agregado al carrito!
+          <Check size={14} />
+          Agregado al ritual
         </>
       ) : (
-        <>
-          <ShoppingBag size={20} />
-          {disabled ? 'Agotado' : 'Agregar al Carrito'}
-        </>
+        'Agregar al ritual'
       )}
     </button>
   )

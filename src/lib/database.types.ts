@@ -1,4 +1,4 @@
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
@@ -90,7 +90,9 @@ export type Database = {
         Row: {
           created_at: string | null
           customer_email: string
+          early_access_sent: boolean | null
           id: string
+          notes: string | null
           order_number: string
           order_status: string | null
           payment_id: string | null
@@ -105,7 +107,9 @@ export type Database = {
         Insert: {
           created_at?: string | null
           customer_email: string
+          early_access_sent?: boolean | null
           id?: string
+          notes?: string | null
           order_number: string
           order_status?: string | null
           payment_id?: string | null
@@ -120,7 +124,9 @@ export type Database = {
         Update: {
           created_at?: string | null
           customer_email?: string
+          early_access_sent?: boolean | null
           id?: string
+          notes?: string | null
           order_number?: string
           order_status?: string | null
           payment_id?: string | null
@@ -205,6 +211,8 @@ export type Database = {
           id: string
           phone: string | null
           role: string | null
+          wellness_active: boolean | null
+          wellness_code: string | null
           wellness_profile: Json | null
         }
         Insert: {
@@ -213,6 +221,8 @@ export type Database = {
           id: string
           phone?: string | null
           role?: string | null
+          wellness_active?: boolean | null
+          wellness_code?: string | null
           wellness_profile?: Json | null
         }
         Update: {
@@ -221,7 +231,131 @@ export type Database = {
           id?: string
           phone?: string | null
           role?: string | null
+          wellness_active?: boolean | null
+          wellness_code?: string | null
           wellness_profile?: Json | null
+        }
+        Relationships: []
+      }
+      user_habits: {
+        Row: {
+          completed_at: string
+          created_at: string | null
+          habit_name: string
+          id: string
+          streak_count: number | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          created_at?: string | null
+          habit_name: string
+          id?: string
+          streak_count?: number | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          created_at?: string | null
+          habit_name?: string
+          id?: string
+          streak_count?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wellness_access: {
+        Row: {
+          activated_at: string | null
+          code: string
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          order_id: string | null
+          user_email: string
+          user_id: string | null
+        }
+        Insert: {
+          activated_at?: string | null
+          code: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          order_id?: string | null
+          user_email: string
+          user_id?: string | null
+        }
+        Update: {
+          activated_at?: string | null
+          code?: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          order_id?: string | null
+          user_email?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wellness_access_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wellness_content: {
+        Row: {
+          category: string | null
+          content_body: string | null
+          created_at: string | null
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          is_published: boolean | null
+          media_url: string | null
+          slug: string
+          sort_order: number | null
+          tags: string[] | null
+          thumbnail_url: string | null
+          title: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          content_body?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          is_published?: boolean | null
+          media_url?: string | null
+          slug: string
+          sort_order?: number | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title: string
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          content_body?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          is_published?: boolean | null
+          media_url?: string | null
+          slug?: string
+          sort_order?: number | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title?: string
+          type?: string
+          updated_at?: string | null
         }
         Relationships: []
       }

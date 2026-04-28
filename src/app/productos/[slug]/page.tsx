@@ -2,7 +2,7 @@ import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { AddToCartButton } from '@/components/AddToCartButton'
-import { ArrowLeft, Leaf, Shield, Truck, Star } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 
 const FALLBACK_IMAGES: Record<string, string> = {
   aceites: 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=900&q=80',
@@ -35,24 +35,27 @@ export default async function ProductPage({
       : FALLBACK_IMAGES[categoryName] ?? FALLBACK_IMAGES.default
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative overflow-x-hidden">
+      {/* Ambient blobs */}
+      <div className="fixed top-10 right-0 w-[35vw] h-[35vw] bg-primary-fixed-dim/15 rounded-full blur-3xl pointer-events-none -z-10" />
+
       {/* Breadcrumb */}
-      <div className="max-w-7xl mx-auto px-6 pt-8 pb-4">
+      <div className="max-w-7xl mx-auto px-6 md:px-16 pt-10 pb-2">
         <a
           href="/tienda"
-          className="inline-flex items-center gap-2 text-sm text-foreground/50 hover:text-primary transition-colors"
+          className="inline-flex items-center gap-2 font-body text-sm text-on-surface-variant hover:text-primary transition-colors"
         >
-          <ArrowLeft size={16} />
-          Volver al catálogo
+          <ArrowLeft size={14} />
+          Volver al catalogo
         </a>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 pb-24">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+      <div className="max-w-7xl mx-auto px-6 md:px-16 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-start">
 
-          {/* Imagen principal */}
-          <div className="space-y-4">
-            <div className="relative aspect-square rounded-2xl overflow-hidden bg-surface-dim border border-outline-variant shadow-xl">
+          {/* Left: image */}
+          <div className="relative">
+            <div className="organic-card-1 overflow-hidden ambient-shadow-lg aspect-square relative">
               <Image
                 src={imageUrl}
                 alt={product.name}
@@ -62,105 +65,87 @@ export default async function ProductPage({
                 unoptimized
               />
               {(product.categories as any)?.name && (
-                <div className="absolute top-4 left-4">
-                  <span className="inline-flex items-center gap-1.5 bg-surface/95 backdrop-blur-sm text-primary text-xs font-semibold uppercase tracking-widest px-3 py-2 rounded-full shadow-sm">
-                    <Leaf size={11} />
+                <div className="absolute top-5 left-5">
+                  <span className="font-body text-[10px] uppercase tracking-widest bg-surface/90 backdrop-blur-sm text-primary px-3 py-1.5 rounded-full">
                     {(product.categories as any).name}
                   </span>
                 </div>
               )}
             </div>
 
-            {/* Galería thumbnail (placeholder para más imágenes) */}
-            {product.images && product.images.length > 1 && (
-              <div className="flex gap-3">
-                {product.images.slice(0, 4).map((img: string, i: number) => (
-                  <div
-                    key={i}
-                    className="relative w-20 h-20 rounded-lg overflow-hidden bg-surface-dim border-2 border-primary cursor-pointer"
-                  >
-                    <Image src={img} alt={`Vista ${i + 1}`} fill className="object-cover" unoptimized />
-                  </div>
-                ))}
-              </div>
-            )}
+            {/* Floating organic accent */}
+            <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-secondary-fixed/30 organic-blob blur-2xl pointer-events-none" />
           </div>
 
-          {/* Información del producto */}
-          <div className="space-y-8 lg:pt-4">
-            <div className="space-y-4">
-              {/* Reseñas simuladas */}
-              <div className="flex items-center gap-2">
-                <div className="flex">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={16} fill="#c5a96d" className="text-accent" />
-                  ))}
-                </div>
-                <span className="text-sm text-foreground/50">(4.9) · 12 reseñas</span>
-              </div>
+          {/* Right: info */}
+          <div className="space-y-8 lg:pt-6">
+            {/* Category label */}
+            {(product.categories as any)?.name && (
+              <p className="font-body text-xs uppercase tracking-[0.2em] text-outline">
+                {(product.categories as any).name}
+              </p>
+            )}
 
-              <h1 className="font-display text-4xl font-bold text-primary leading-tight">
-                {product.name}
-              </h1>
+            <h1 className="font-display text-5xl md:text-6xl text-primary leading-[1.1] italic">
+              {product.name}
+            </h1>
 
-              {product.short_description && (
-                <p className="text-foreground/70 leading-relaxed text-lg">
-                  {product.short_description}
-                </p>
-              )}
-            </div>
+            {product.short_description && (
+              <p className="font-body text-lg text-on-surface-variant leading-relaxed">
+                {product.short_description}
+              </p>
+            )}
 
-            {/* Precio */}
+            {/* Price */}
             <div className="flex items-baseline gap-3 py-6 border-y border-outline-variant">
-              <span className="font-display text-4xl font-bold text-primary">
+              <span className="font-display text-4xl text-primary">
                 ${product.price.toLocaleString('es-CO')}
               </span>
-              <span className="text-foreground/50 text-base">COP</span>
+              <span className="font-body text-sm text-outline">COP</span>
             </div>
 
             {/* Stock */}
             {product.stock > 0 ? (
-              <div className="flex items-center gap-2 text-sm">
+              <div className="flex items-center gap-2 font-body text-sm">
                 <div className="w-2 h-2 bg-green-500 rounded-full" />
-                <span className="text-foreground/60">
+                <span className="text-on-surface-variant">
                   {product.stock <= 5
-                    ? `¡Solo quedan ${product.stock} unidades!`
-                    : 'En stock · Listo para enviar'}
+                    ? 'Solo quedan ' + product.stock + ' unidades'
+                    : 'En stock — listo para enviar'}
                 </span>
               </div>
             ) : (
-              <div className="flex items-center gap-2 text-sm text-error">
+              <div className="flex items-center gap-2 font-body text-sm text-error">
                 <div className="w-2 h-2 bg-error rounded-full" />
                 Agotado temporalmente
               </div>
             )}
 
-            {/* Botón agregar al carrito */}
+            {/* CTA */}
             <AddToCartButton
-              product={{
-                id: product.id,
-                name: product.name,
-                price: product.price,
-                image_url: imageUrl,
-              }}
+              product={{ id: product.id, name: product.name, price: product.price, image_url: imageUrl }}
               disabled={product.stock === 0}
             />
 
-            {/* Garantías */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-outline-variant">
+            {/* Alma Botanica section */}
+            <div className="bg-surface-container-low organic-card-2 p-6 space-y-2">
+              <p className="font-display text-sm italic text-primary">Alma Botanica</p>
+              <p className="font-body text-sm text-on-surface-variant leading-relaxed">
+                Proveniente de las montanas colombianas, trabajado artesanalmente para preservar
+                la integridad de cada planta. Sin quimicos, sin atajos — solo naturaleza pura.
+              </p>
+            </div>
+
+            {/* Trust badges */}
+            <div className="grid grid-cols-3 gap-4 pt-2 border-t border-outline-variant">
               {[
-                { icon: Leaf, title: '100% Natural', desc: 'Sin químicos' },
-                { icon: Truck, title: 'Envío nacional', desc: 'A todo Colombia' },
-                { icon: Shield, title: 'Compra segura', desc: 'Mercado Pago' },
-              ].map(({ icon: Icon, title, desc }) => (
-                <div key={title} className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-primary-fixed rounded-full flex items-center justify-center flex-shrink-0">
-                    <Icon size={18} className="text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-foreground">{title}</p>
-                    <p className="text-xs text-foreground/50">{desc}</p>
-                  </div>
+                ['100% Natural', 'Sin quimicos'],
+                ['Envio nacional', 'Todo Colombia'],
+                ['Compra segura', 'Mercado Pago'],
+              ].map(([title, desc]) => (
+                <div key={title} className="text-center">
+                  <p className="font-body text-xs font-semibold text-primary">{title}</p>
+                  <p className="font-body text-[10px] text-on-surface-variant mt-0.5">{desc}</p>
                 </div>
               ))}
             </div>

@@ -2,9 +2,13 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { MercadoPagoConfig, Preference } from 'mercadopago'
+
+const MP_ACCESS_TOKEN = process.env.MERCADO_PAGO_ACCESS_TOKEN ?? ''
 
 export async function createOrder(formData: FormData) {
   const supabase = await createClient()
+  const db = supabase as any
 
   const email = formData.get('email') as string
   const nombre_completo = formData.get('nombre_completo') as string
@@ -20,7 +24,6 @@ export async function createOrder(formData: FormData) {
     redirect('/checkout?error=El carrito esta vacio')
   }
 
-  // Verificar precios desde la BD - nunca confiar en el cliente
   const productIds = cartItems.map((i) => i.id)
   const { data: dbProducts, error: fetchError } = await supabase
     .from('products')
@@ -38,6 +41,9 @@ export async function createOrder(formData: FormData) {
     if (!p || p.status !== 'active') {
       redirect('/checkout?error=Uno o mas productos no estan disponibles')
     }
+    if (p.stock < item.quantity) {
+      redirect('/checkout?error=Stock insuficiente para ' + p.name)
+    }
   }
 
   const subtotal = cartItems.reduce((acc, item) => {
@@ -47,7 +53,7 @@ export async function createOrder(formData: FormData) {
   const shipping_cost = 0
   const total = subtotal + shipping_cost
 
-  const order_number = `NAT-${Math.floor(10000 + Math.random() * 90000)}`
+  const order_number = 'NAT-' + Math.floor(10000 + Math.random() * 90000)
 
   const { data: order, error: orderError } = await supabase
     .from('orders')
@@ -80,10 +86,47 @@ export async function createOrder(formData: FormData) {
     }
   })
 
-  const { error: itemsError } = await supabase.from('order_items').insert(orderItemsData)
-  if (itemsError) {
-    console.error('Error al guardar items:', itemsError)
+  await supabase.from('order_items').insert(orderItemsData)
+
+  if (!MP_ACCESS_TOKEN) {
+    redirect('/checkout/success?order=' + order_number + '&status=approved')
   }
 
-  redirect(`/checkout/success?order=${order_number}`)
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
+  const mpClient = new MercadoPagoConfig({ accessToken: MP_ACCESS_TOKEN })
+  const preferenceClient = new Preference(mpClient)
+
+  const mpItems = cartItems.map((item) => {
+    const p = productMap.get(item.id)!
+    return {
+      id: item.id,
+      title: p.name,
+      quantity: item.quantity,
+      unit_price: p.price,
+      currency_id: 'COP',
+    }
+  })
+
+  const { id: preferenceId } = await preferenceClient.create({
+    body: {
+      items: mpItems,
+      payer: { email },
+      external_reference: order.id,
+      back_urls: {
+        success: baseUrl + '/checkout/success?order=' + order_number,
+        failure: baseUrl + '/checkout/failure?order=' + order_number,
+        pending: baseUrl + '/checkout/pending?order=' + order_number,
+      },
+      auto_return: 'approved',
+      notification_url: baseUrl + '/api/webhooks/mercadopago',
+      metadata: { order_id: order.id, order_number },
+    },
+  })
+
+  await db
+    .from('orders')
+    .update({ notes: 'mp_preference:' + preferenceId })
+    .eq('id', order.id)
+
+  redirect('https://www.mercadopago.com.co/checkout/v1/redirect?pref_id=' + preferenceId)
 }

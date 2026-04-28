@@ -1,88 +1,178 @@
 @import "tailwindcss";
 @plugin "tailwindcss-animate";
 
-:root {
-  /* === Colores Base === */
-  --background: #fcf9f4;       /* Warm cream */
-  --foreground: #1c1c19;       /* Soft dark */
-
-  /* === Verde Salvia (Primary) === */
-  --primary: #384b3b;
-  --primary-container: #4f6352;
-  --primary-light: #e8efe9;
-  --primary-fixed: #d4e8d6;
-  --primary-fixed-variant: #2a3b2c;
-
-  /* === Terracota (Secondary) === */
-  --secondary: #8c4e37;
-  --secondary-container: #a05d44;
-  --secondary-fixed: #f5ddd6;
-  --secondary-fixed-variant: #6b3422;
-
-  /* === Superficies === */
-  --surface: #ffffff;
-  --surface-dim: #f6f3ee;
-  --surface-container-low: #f2ede7;
-  --surface-container: #ede8e2;
-  --surface-container-high: #e4dfd8;
-
-  /* === Bordes === */
-  --outline: #c4bdb5;
-  --outline-variant: #ddd8d1;
-
-  /* === Estados === */
-  --error: #ba1a1a;
-  --error-container: #ffdad6;
-  --on-error-container: #410002;
-
-  /* === Acento natural === */
-  --accent: #c5a96d;           /* Dorado cálido */
-  --accent-light: #f7f0e2;
-}
+/* ===================================================
+   NATUAROMA — Earth & Ethos Design System (Stitch)
+   =================================================== */
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  /* Fonts */
+  --font-display: "Noto Serif", serif;
+  --font-body: "Be Vietnam Pro", sans-serif;
 
-  --color-primary: var(--primary);
-  --color-primary-container: var(--primary-container);
-  --color-primary-light: var(--primary-light);
-  --color-primary-fixed: var(--primary-fixed);
-  --color-primary-fixed-variant: var(--primary-fixed-variant);
+  /* Core palette */
+  --color-background: #fcf9f4;
+  --color-foreground: #1c1c19;
+  --color-primary: #223426;
+  --color-primary-container: #384b3b;
+  --color-primary-light: #e8efe9;
+  --color-primary-fixed: #d2e8d2;
+  --color-primary-fixed-dim: #b6ccb7;
+  --color-primary-fixed-variant: #384b3b;
+  --color-on-primary: #ffffff;
+  --color-on-primary-fixed: #0d1f12;
 
-  --color-secondary: var(--secondary);
-  --color-secondary-container: var(--secondary-container);
-  --color-secondary-fixed: var(--secondary-fixed);
-  --color-secondary-fixed-variant: var(--secondary-fixed-variant);
+  --color-secondary: #725b27;
+  --color-secondary-container: #fedf9e;
+  --color-secondary-fixed: #fedf9e;
+  --color-secondary-fixed-dim: #e1c385;
+  --color-on-secondary-fixed: #251a00;
+  --color-on-secondary-container: #78612d;
 
-  --color-surface: var(--surface);
-  --color-surface-dim: var(--surface-dim);
-  --color-surface-container-low: var(--surface-container-low);
-  --color-surface-container: var(--surface-container);
-  --color-surface-container-high: var(--surface-container-high);
+  --color-tertiary: #233428;
+  --color-tertiary-container: #3a4b3e;
+  --color-tertiary-fixed: #d4e8d6;
+  --color-tertiary-fixed-dim: #b8ccba;
+  --color-on-tertiary: #ffffff;
 
-  --color-outline: var(--outline);
-  --color-outline-variant: var(--outline-variant);
+  --color-surface: #ffffff;
+  --color-surface-dim: #dcdad5;
+  --color-surface-bright: #fcf9f4;
+  --color-surface-tint: #506352;
+  --color-surface-variant: #e5e2dd;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f6f3ee;
+  --color-surface-container: #f0ede9;
+  --color-surface-container-high: #ebe8e3;
+  --color-surface-container-highest: #e5e2dd;
+  --color-on-surface: #1c1c19;
+  --color-on-surface-variant: #434842;
+  --color-inverse-surface: #31302d;
+  --color-inverse-on-surface: #f3f0eb;
+  --color-inverse-primary: #b6ccb7;
 
-  --color-error: var(--error);
-  --color-error-container: var(--error-container);
-  --color-on-error-container: var(--on-error-container);
+  --color-outline: #737872;
+  --color-outline-variant: #c3c8c0;
 
-  --color-accent: var(--accent);
-  --color-accent-light: var(--accent-light);
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+  --color-on-error: #ffffff;
+  --color-on-error-container: #93000a;
 
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  /* Legacy aliases for backwards compatibility */
+  --color-accent: #e1c385;
+  --color-accent-light: #fedf9e;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
+:root {
+  --background: #fcf9f4;
+  --foreground: #1c1c19;
+  --primary: #223426;
+  --primary-container: #384b3b;
+  --primary-light: #e8efe9;
+  --primary-fixed: #d2e8d2;
+  --primary-fixed-dim: #b6ccb7;
+  --primary-fixed-variant: #384b3b;
+  --secondary: #725b27;
+  --secondary-container: #fedf9e;
+  --secondary-fixed: #fedf9e;
+  --secondary-fixed-dim: #e1c385;
+  --on-secondary-fixed: #251a00;
+  --surface: #ffffff;
+  --surface-dim: #dcdad5;
+  --surface-bright: #fcf9f4;
+  --surface-variant: #e5e2dd;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #f6f3ee;
+  --surface-container: #f0ede9;
+  --surface-container-high: #ebe8e3;
+  --surface-container-highest: #e5e2dd;
+  --on-surface: #1c1c19;
+  --on-surface-variant: #434842;
+  --inverse-primary: #b6ccb7;
+  --tertiary-fixed: #d4e8d6;
+  --tertiary-container: #3a4b3e;
+  --outline: #737872;
+  --outline-variant: #c3c8c0;
+  --error: #ba1a1a;
+  --error-container: #ffdad6;
+  --on-error-container: #93000a;
+  --accent: #e1c385;
+  --accent-light: #fedf9e;
 }
 
-/* Scrollbar sutil */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--surface-dim); }
-::-webkit-scrollbar-thumb { background: var(--outline); border-radius: 9999px; }
+/* ===================================================
+   ORGANIC SHAPES
+   =================================================== */
+.organic-blob {
+  border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+}
+.organic-card-1 { border-radius: 80px 20px 60px 30px; }
+.organic-card-2 { border-radius: 30px 60px 20px 80px; }
+.organic-card-3 { border-radius: 50px 30px 70px 40px; }
+.organic-pebble { border-radius: 80px 20px 60px 30px; }
+.organic-pebble-alt { border-radius: 20px 80px 30px 60px; }
+.organic-pebble-img { border-radius: 70px 15px 50px 25px; }
+
+/* ===================================================
+   SHADOWS — Ambient botanicals (tinted green)
+   =================================================== */
+.ambient-shadow { box-shadow: 0 20px 40px rgba(56, 75, 59, 0.08); }
+.ambient-shadow-lg { box-shadow: 0 30px 60px rgba(56, 75, 59, 0.12); }
+.product-shadow { box-shadow: 0 20px 50px rgba(56, 75, 59, 0.10); }
+
+/* ===================================================
+   HERO MASK — Organic wave bottom edge
+   =================================================== */
+.botanical-mask {
+  -webkit-mask-image: url('data:image/svg+xml;utf8,<svg preserveAspectRatio="none" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M0,100 C20,60 50,120 80,70 C90,50 100,80 100,80 L100,0 L0,0 Z" fill="black"/></svg>');
+  -webkit-mask-size: 100% 100%;
+  mask-image: url('data:image/svg+xml;utf8,<svg preserveAspectRatio="none" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M0,100 C20,60 50,120 80,70 C90,50 100,80 100,80 L100,0 L0,0 Z" fill="black"/></svg>');
+  mask-size: 100% 100%;
+}
+
+/* ===================================================
+   MASONRY GRID — Product catalog
+   =================================================== */
+.masonry-grid {
+  column-count: 1;
+  column-gap: 24px;
+}
+@media (min-width: 640px) {
+  .masonry-grid { column-count: 2; }
+}
+@media (min-width: 1024px) {
+  .masonry-grid { column-count: 3; }
+}
+.masonry-item {
+  break-inside: avoid;
+  margin-bottom: 32px;
+}
+
+/* ===================================================
+   WAVE FOOTER
+   =================================================== */
+.footer-wave {
+  border-radius: 80px 80px 0 0;
+}
+@media (min-width: 768px) {
+  .footer-wave { border-radius: 160px 160px 0 0; }
+}
+
+/* ===================================================
+   TYPOGRAPHY UTILITIES
+   =================================================== */
+.font-display { font-family: "Noto Serif", serif; }
+.font-body { font-family: "Be Vietnam Pro", sans-serif; }
+
+/* ===================================================
+   TEXTURE OVERLAY
+   =================================================== */
+.texture-bg::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url('data:image/svg+xml;utf8,<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%25" height="100%25" filter="url(%23n)" opacity="0.03"/></svg>');
+  pointer-events: none;
+  z-index: 0;
+}
