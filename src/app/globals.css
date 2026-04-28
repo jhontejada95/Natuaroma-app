@@ -1,23 +1,76 @@
 @import "tailwindcss";
+@plugin "tailwindcss-animate";
 
 :root {
-  --background: #fcf9f4; /* Creamy warm white */
-  --foreground: #1c1c19; /* Soft black/dark green for text */
-  --primary: #384b3b; /* Deep sage green */
+  /* === Colores Base === */
+  --background: #fcf9f4;       /* Warm cream */
+  --foreground: #1c1c19;       /* Soft dark */
+
+  /* === Verde Salvia (Primary) === */
+  --primary: #384b3b;
   --primary-container: #4f6352;
-  --secondary: #8c4e37; /* Terracotta */
+  --primary-light: #e8efe9;
+  --primary-fixed: #d4e8d6;
+  --primary-fixed-variant: #2a3b2c;
+
+  /* === Terracota (Secondary) === */
+  --secondary: #8c4e37;
+  --secondary-container: #a05d44;
+  --secondary-fixed: #f5ddd6;
+  --secondary-fixed-variant: #6b3422;
+
+  /* === Superficies === */
   --surface: #ffffff;
   --surface-dim: #f6f3ee;
+  --surface-container-low: #f2ede7;
+  --surface-container: #ede8e2;
+  --surface-container-high: #e4dfd8;
+
+  /* === Bordes === */
+  --outline: #c4bdb5;
+  --outline-variant: #ddd8d1;
+
+  /* === Estados === */
+  --error: #ba1a1a;
+  --error-container: #ffdad6;
+  --on-error-container: #410002;
+
+  /* === Acento natural === */
+  --accent: #c5a96d;           /* Dorado cálido */
+  --accent-light: #f7f0e2;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
   --color-primary: var(--primary);
   --color-primary-container: var(--primary-container);
+  --color-primary-light: var(--primary-light);
+  --color-primary-fixed: var(--primary-fixed);
+  --color-primary-fixed-variant: var(--primary-fixed-variant);
+
   --color-secondary: var(--secondary);
+  --color-secondary-container: var(--secondary-container);
+  --color-secondary-fixed: var(--secondary-fixed);
+  --color-secondary-fixed-variant: var(--secondary-fixed-variant);
+
   --color-surface: var(--surface);
   --color-surface-dim: var(--surface-dim);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-high: var(--surface-container-high);
+
+  --color-outline: var(--outline);
+  --color-outline-variant: var(--outline-variant);
+
+  --color-error: var(--error);
+  --color-error-container: var(--error-container);
+  --color-on-error-container: var(--on-error-container);
+
+  --color-accent: var(--accent);
+  --color-accent-light: var(--accent-light);
+
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
 }
@@ -28,3 +81,8 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
+
+/* Scrollbar sutil */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--surface-dim); }
+::-webkit-scrollbar-thumb { background: var(--outline); border-radius: 9999px; }
