@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { X, Share, Plus, Chrome } from 'lucide-react'
+import { X, Share, Plus, Smartphone } from 'lucide-react'
 
 type Platform = 'ios' | 'android' | 'other'
 
@@ -164,7 +164,7 @@ function AndroidInstall({ onInstall }: { onInstall: () => void }) {
     <div className="space-y-4">
       <div className="bg-white/5 rounded-2xl p-4 flex items-center gap-3">
         <div className="w-10 h-10 rounded-full bg-[#e1c385]/20 flex items-center justify-center flex-shrink-0">
-          <Chrome size={20} className="text-[#e1c385]" />
+          <Smartphone size={20} className="text-[#e1c385]" />
         </div>
         <div>
           <p className="text-white text-sm font-medium">Instalar Natuaroma</p>
