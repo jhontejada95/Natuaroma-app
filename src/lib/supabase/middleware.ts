@@ -45,7 +45,7 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  // Proteger /wellness — solo requiere login, la validacion de acceso va en el layout
+  // Proteger /wellness — rutas publicas excluidas
   if (
     request.nextUrl.pathname.startsWith('/wellness') &&
     !request.nextUrl.pathname.startsWith('/wellness/activar') &&

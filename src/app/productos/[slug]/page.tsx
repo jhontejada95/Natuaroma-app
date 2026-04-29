@@ -5,7 +5,14 @@ import { AddToCartButton } from '@/components/AddToCartButton'
 import { ArrowLeft } from 'lucide-react'
 import type { Metadata } from 'next'
 
-export const revalidate = 1800
+export const revalidate = 3600
+
+export async function generateStaticParams() {
+  const { createClient } = await import('@/lib/supabase/server')
+  const supabase = await createClient()
+  const { data } = await supabase.from('products').select('slug').eq('status', 'active')
+  return (data ?? []).map((p) => ({ slug: p.slug }))
+}
 
 const FALLBACK_IMAGES: Record<string, string> = {
   aceites: 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=900&q=80',
@@ -90,7 +97,6 @@ export default async function ProductPage({
                 fill
                 className="object-cover"
                 priority
-                unoptimized
               />
               {(product.categories as any)?.name && (
                 <div className="absolute top-5 left-5">

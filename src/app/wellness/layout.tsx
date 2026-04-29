@@ -3,14 +3,12 @@ import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { Leaf, BookOpen, Sparkles, LayoutDashboard, LogOut } from 'lucide-react'
 
-// Rutas dentro de /wellness que NO requieren sesión ni acceso wellness
 const PUBLIC_WELLNESS = ['/wellness/login', '/wellness/activar']
 
 export default async function WellnessLayout({ children }: { children: React.ReactNode }) {
   const headersList = await headers()
   const pathname = headersList.get('x-pathname') ?? ''
 
-  // Si es una ruta pública, renderizar sin verificar auth
   if (PUBLIC_WELLNESS.some(p => pathname.startsWith(p))) {
     return <>{children}</>
   }
@@ -21,7 +19,6 @@ export default async function WellnessLayout({ children }: { children: React.Rea
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/wellness/login')
 
-  // Verificar acceso wellness activo
   const { data: access } = await db
     .from('wellness_access')
     .select('id, activated_at, expires_at, code')
@@ -37,7 +34,6 @@ export default async function WellnessLayout({ children }: { children: React.Rea
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Top nav */}
       <header className="bg-primary text-surface sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <a href="/wellness" className="flex items-center gap-2.5 font-display font-bold text-lg">
@@ -67,7 +63,6 @@ export default async function WellnessLayout({ children }: { children: React.Rea
         </div>
       </header>
 
-      {/* Mobile nav */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 bg-primary border-t border-white/10 z-50 flex">
         {[
           { href: '/wellness', icon: LayoutDashboard, label: 'Inicio' },

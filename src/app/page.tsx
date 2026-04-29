@@ -26,7 +26,6 @@ export default async function HomePage() {
             fill
             className="object-cover opacity-70 mix-blend-overlay"
             priority
-            unoptimized
           />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary-container/20 to-background" />
         </div>
@@ -90,7 +89,6 @@ export default async function HomePage() {
                     alt={products[0].name}
                     fill
                     className="object-cover transition-transform duration-700 group-hover:scale-105"
-                    unoptimized
                   />
                 ) : (
                   <Image
@@ -98,7 +96,6 @@ export default async function HomePage() {
                     alt={products[0].name}
                     fill
                     className="object-cover transition-transform duration-700 group-hover:scale-105"
-                    unoptimized
                   />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/30 to-transparent" />
@@ -132,7 +129,6 @@ export default async function HomePage() {
                       width={80}
                       height={80}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      unoptimized
                     />
                   </div>
                   <div>
@@ -170,7 +166,6 @@ export default async function HomePage() {
             alt="Tropical leaf texture"
             fill
             className="object-cover"
-            unoptimized
           />
         </div>
 
@@ -184,7 +179,6 @@ export default async function HomePage() {
                   alt="Wellness app"
                   fill
                   className="object-cover opacity-50"
-                  unoptimized
                 />
                 <div className="absolute bottom-0 w-full h-1/2 bg-gradient-to-t from-surface to-transparent p-5 flex flex-col justify-end">
                   <span className="font-body text-[10px] text-primary uppercase tracking-widest block mb-2">Ritual Diario</span>
@@ -244,7 +238,6 @@ export default async function HomePage() {
               alt="Naturaleza colombiana"
               fill
               className="object-cover"
-              unoptimized
             />
           </div>
           {/* Stats floating card */}
