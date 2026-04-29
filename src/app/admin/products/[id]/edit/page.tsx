@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { updateProduct } from '@/app/admin/products/actions'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, ImageIcon, Info } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
+import { CloudinaryUpload } from '@/components/CloudinaryUpload'
 
 const inputClass =
   'w-full px-4 py-2.5 bg-surface-dim border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-colors text-sm'
@@ -25,7 +26,6 @@ export default async function EditProductPage({
 
   if (!product) notFound()
 
-  // Bind productId al action
   const updateProductWithId = updateProduct.bind(null, id)
 
   return (
@@ -56,7 +56,6 @@ export default async function EditProductPage({
           <h2 className="font-display font-semibold text-primary border-b border-outline-variant pb-3">
             Información básica
           </h2>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label htmlFor="name" className={labelClass}>Nombre del Producto</label>
@@ -66,11 +65,8 @@ export default async function EditProductPage({
                 className={inputClass}
               />
             </div>
-
             <div>
-              <label htmlFor="slug" className={labelClass}>
-                Slug (URL)
-              </label>
+              <label htmlFor="slug" className={labelClass}>Slug (URL)</label>
               <input
                 type="text" id="slug" name="slug" required
                 defaultValue={product.slug}
@@ -78,7 +74,6 @@ export default async function EditProductPage({
               />
             </div>
           </div>
-
           <div>
             <label htmlFor="description" className={labelClass}>Descripción</label>
             <textarea
@@ -94,7 +89,6 @@ export default async function EditProductPage({
           <h2 className="font-display font-semibold text-primary border-b border-outline-variant pb-3">
             Precio e inventario
           </h2>
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label htmlFor="price" className={labelClass}>Precio (COP)</label>
@@ -107,7 +101,6 @@ export default async function EditProductPage({
                 />
               </div>
             </div>
-
             <div>
               <label htmlFor="stock" className={labelClass}>Inventario</label>
               <input
@@ -116,10 +109,9 @@ export default async function EditProductPage({
                 className={inputClass}
               />
             </div>
-
             <div>
               <label htmlFor="status" className={labelClass}>Estado</label>
-              <select id="status" name="status" defaultValue={product.status ?? "active"} className={inputClass}>
+              <select id="status" name="status" defaultValue={product.status ?? 'active'} className={inputClass}>
                 <option value="active">Activo — visible en tienda</option>
                 <option value="draft">Borrador — oculto</option>
               </select>
@@ -152,22 +144,10 @@ export default async function EditProductPage({
           <h2 className="font-display font-semibold text-primary border-b border-outline-variant pb-3">
             Imagen del producto
           </h2>
-          <div>
-            <label htmlFor="image_url" className={labelClass}>URL de la imagen</label>
-            <div className="relative">
-              <ImageIcon size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/40" />
-              <input
-                type="url" id="image_url" name="image_url"
-                defaultValue={product.images?.[0] ?? ''}
-                placeholder="https://ejemplo.com/imagen.jpg"
-                className={`${inputClass} pl-9`}
-              />
-            </div>
-            <p className="flex items-center gap-1.5 text-xs text-foreground/50 mt-2">
-              <Info size={12} />
-              Si la dejas vacía, se usa una imagen predeterminada según la categoría.
-            </p>
-          </div>
+          <CloudinaryUpload
+            name="image_url"
+            defaultValue={product.images?.[0] ?? ''}
+          />
         </div>
 
         {/* Acciones */}
