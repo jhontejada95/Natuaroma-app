@@ -155,9 +155,9 @@ export default async function ProductPage({
             {/* Story box */}
             <div className="bg-surface-container-low organic-card-2 p-6 space-y-2">
               <p className="font-display text-sm italic text-primary">Alma Botanica</p>
-              {product.description ? (
+              {product.long_description ? (
                 <p className="font-body text-sm text-on-surface-variant leading-relaxed">
-                  {product.description}
+                  {product.long_description}
                 </p>
               ) : (
                 <p className="font-body text-sm text-on-surface-variant leading-relaxed">
