@@ -18,8 +18,8 @@ export async function signInWithEmail(formData: FormData) {
   const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {
-      shouldCreateUser: false, 
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/confirm`, 
+      shouldCreateUser: true,
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.natuaroma.shop'}/auth/confirm`,
     },
   })
 
