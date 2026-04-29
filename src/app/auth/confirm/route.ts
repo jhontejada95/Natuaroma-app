@@ -4,30 +4,31 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
+  const code = searchParams.get('code')
   const token_hash = searchParams.get('token_hash')
   const type = searchParams.get('type') as EmailOtpType | null
   const next = searchParams.get('next') ?? '/admin/products'
 
-  if (token_hash && type) {
-    const supabase = await createClient()
+  const supabase = await createClient()
 
-    const { error } = await supabase.auth.verifyOtp({
-      type,
-      token_hash,
-    })
+  // Flujo PKCE (código de autorización) — Supabase v2 por defecto
+  if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
-      // Redirigir al panel de administración después de login exitoso
-      const url = request.nextUrl.clone()
-      url.pathname = next
-      url.searchParams.delete('token_hash')
-      url.searchParams.delete('type')
-      return NextResponse.redirect(url)
+      return NextResponse.redirect(new URL(next, request.url))
     }
   }
 
-  // Redirigir al login si falla
-  const url = request.nextUrl.clone()
-  url.pathname = '/admin/login'
-  url.searchParams.set('error', 'Enlace inválido o expirado')
-  return NextResponse.redirect(url)
+  // Flujo implícito (token_hash) — fallback
+  if (token_hash && type) {
+    const { error } = await supabase.auth.verifyOtp({ type, token_hash })
+    if (!error) {
+      return NextResponse.redirect(new URL(next, request.url))
+    }
+  }
+
+  // Falló — redirigir al login con error
+  const loginUrl = new URL('/admin/login', request.url)
+  loginUrl.searchParams.set('error', 'Enlace inválido o expirado. Solicita uno nuevo.')
+  return NextResponse.redirect(loginUrl)
 }
