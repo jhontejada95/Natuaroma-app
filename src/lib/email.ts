@@ -191,3 +191,4 @@ export async function sendWellnessCode(params: {
     console.error('[email] Error enviando código wellness:', err)
   }
 }
+}
