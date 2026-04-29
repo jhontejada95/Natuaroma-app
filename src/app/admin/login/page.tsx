@@ -1,4 +1,4 @@
-import { signInWithEmail } from './actions'
+import { signInWithPassword } from './actions'
 
 export default async function LoginPage({
   searchParams,
@@ -15,7 +15,7 @@ export default async function LoginPage({
           <p className="text-foreground/60 text-sm mt-2">Acceso exclusivo para el equipo</p>
         </div>
 
-        <form action={signInWithEmail} className="space-y-4">
+        <form action={signInWithPassword} className="space-y-4">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1">
               Correo Electrónico
@@ -30,18 +30,27 @@ export default async function LoginPage({
             />
           </div>
 
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-foreground mb-1">
+              Contraseña
+            </label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              required
+              placeholder="••••••••"
+              className="w-full px-4 py-2 bg-surface-dim border border-outline-variant rounded focus:outline-none focus:border-primary transition-colors"
+            />
+          </div>
+
           <button
             type="submit"
             className="w-full bg-primary text-surface py-2 rounded hover:bg-primary-container transition-colors font-medium"
           >
-            Enviar enlace de acceso
+            Entrar al panel
           </button>
 
-          {params?.message && (
-            <p className="mt-4 p-4 bg-primary-fixed text-primary-fixed-variant text-sm rounded">
-              {params.message}
-            </p>
-          )}
           {params?.error && (
             <p className="mt-4 p-4 bg-error-container text-on-error-container text-sm rounded">
               {params.error}
