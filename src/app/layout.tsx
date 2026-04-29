@@ -39,23 +39,14 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: 'black-translucent',
     title: 'Natuaroma',
-    startupImage: ['/icons/apple-touch-icon.png'],
-  },
-  icons: {
-    apple: [{ url: '/icons/apple-touch-icon.png', sizes: '180x180' }],
-    icon: [
-      { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-      { url: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
-    ],
   },
   openGraph: {
     title: 'Natuaroma — Bienestar que se siente, se respira y se vive',
     description: 'Productos naturales artesanales de Colombia.',
-    url: 'https://natuaroma-app.vercel.app',
+    url: 'https://natuaroma.shop',
     siteName: 'Natuaroma',
     locale: 'es_CO',
     type: 'website',
-    images: [{ url: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=1200&q=80', width: 1200, height: 630, alt: 'Natuaroma' }],
   },
 }
 
@@ -68,14 +59,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         <header className="fixed top-4 left-4 right-4 z-50 max-w-7xl mx-auto">
           <div className="rounded-full px-6 py-3 bg-surface/80 backdrop-blur-md ambient-shadow flex justify-between items-center">
-            <a href="/" className="text-xl font-display font-semibold tracking-tight text-primary italic">
-              Natuaroma
+            <a href="/" className="flex items-center">
+              <img src="/logo.png" alt="Natuaroma" className="h-10 md:h-12 w-auto object-contain" />
             </a>
             <nav className="hidden md:flex gap-8 items-center">
               {[
                 { href: '/tienda', label: 'Tienda' },
                 { href: '/nosotros', label: 'Nosotros' },
-                { href: '/#wellness', label: 'Wellness' },
+                { href: '/wellness', label: 'Wellness' },
               ].map(({ href, label }) => (
                 <a
                   key={href}

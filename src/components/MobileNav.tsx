@@ -5,9 +5,9 @@ import { Menu, X, Leaf } from 'lucide-react'
 
 const NAV_LINKS = [
   { href: '/tienda', label: 'Tienda' },
-  { href: '/#wellness', label: 'Wellness App' },
   { href: '/nosotros', label: 'Nosotros' },
-  { href: '/wellness', label: 'Portal Wellness' },
+  { href: '/wellness', label: 'Wellness' },
+  { href: '/wellness/activar', label: 'Activar acceso' },
 ]
 
 export function MobileNav() {
@@ -18,7 +18,7 @@ export function MobileNav() {
       <button
         onClick={() => setOpen(true)}
         className="md:hidden w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors text-on-surface-variant"
-        aria-label="Abrir menú"
+        aria-label="Abrir menu"
       >
         <Menu size={20} />
       </button>
@@ -46,7 +46,7 @@ export function MobileNav() {
           <button
             onClick={() => setOpen(false)}
             className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-dim text-on-surface-variant transition-colors"
-            aria-label="Cerrar menú"
+            aria-label="Cerrar menu"
           >
             <X size={18} />
           </button>
@@ -73,7 +73,7 @@ export function MobileNav() {
             onClick={() => setOpen(false)}
             className="block w-full text-center bg-secondary-fixed text-on-secondary-fixed rounded-full py-3 font-body text-xs uppercase tracking-widest hover:bg-secondary-fixed-dim transition-colors ambient-shadow"
           >
-            Explorar botánicos
+            Ver productos
           </a>
         </div>
       </div>
