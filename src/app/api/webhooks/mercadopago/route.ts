@@ -13,6 +13,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true })
     }
 
+    // Ignorar notificaciones de prueba / simulacion
+    if (body.live_mode === false) {
+      return NextResponse.json({ ok: true })
+    }
+
     const paymentId = String(body.data.id)
     const client = new MercadoPagoConfig({ accessToken: MP_ACCESS_TOKEN })
     const paymentClient = new Payment(client)
