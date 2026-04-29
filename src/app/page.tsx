@@ -56,7 +56,7 @@ export default async function HomePage() {
               Explorar Botanicos
             </a>
             <a
-              href="#wellness"
+              href="/wellness"
               className="border border-surface-container-lowest/40 text-surface-container-lowest rounded-full px-8 py-4 text-xs font-body font-semibold uppercase tracking-widest hover:bg-surface-container-lowest/10 transition-all duration-300"
             >
               Wellness App

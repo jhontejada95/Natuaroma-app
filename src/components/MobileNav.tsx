@@ -23,17 +23,17 @@ export function MobileNav() {
         <Menu size={20} />
       </button>
 
-      {/* Backdrop */}
+      {/* Backdrop — solo mobile */}
       <div
         onClick={() => setOpen(false)}
-        className={`fixed inset-0 bg-primary/60 backdrop-blur-sm z-50 transition-opacity duration-300 ${
+        className={`md:hidden fixed inset-0 bg-primary/60 backdrop-blur-sm z-50 transition-opacity duration-300 ${
           open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
       />
 
-      {/* Drawer */}
+      {/* Drawer — solo mobile */}
       <div
-        className={`fixed inset-y-0 right-0 w-72 bg-surface z-50 flex flex-col transition-transform duration-300 ease-out ${
+        className={`md:hidden fixed inset-y-0 right-0 w-72 bg-surface z-50 flex flex-col transition-transform duration-300 ease-out ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
