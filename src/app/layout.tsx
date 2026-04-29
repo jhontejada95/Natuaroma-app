@@ -1,8 +1,11 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Noto_Serif, Be_Vietnam_Pro } from 'next/font/google'
 import './globals.css'
 import { CartButton } from '@/components/CartButton'
 import { CartDrawer } from '@/components/CartDrawer'
+import { MobileNav } from '@/components/MobileNav'
+import { WhatsAppButton } from '@/components/WhatsAppButton'
+import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistration'
 
 const notoSerif = Noto_Serif({
   subsets: ['latin'],
@@ -19,9 +22,41 @@ const beVietnamPro = Be_Vietnam_Pro({
   display: 'swap',
 })
 
+export const viewport: Viewport = {
+  themeColor: '#223426',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+}
+
 export const metadata: Metadata = {
   title: 'Natuaroma — Bienestar que se siente, se respira y se vive',
-  description: 'Aceites esenciales, velas y aromas artesanales 100% naturales. Hecho en Colombia.',
+  description: 'Aceites esenciales, velas aromaticas y rituales naturales artesanales 100% hechos en Colombia.',
+  keywords: ['aceites esenciales', 'velas aromaticas', 'bienestar natural', 'aromaterapia', 'Colombia', 'wellness'],
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Natuaroma',
+    startupImage: ['/icons/apple-touch-icon.png'],
+  },
+  icons: {
+    apple: [{ url: '/icons/apple-touch-icon.png', sizes: '180x180' }],
+    icon: [
+      { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+  },
+  openGraph: {
+    title: 'Natuaroma — Bienestar que se siente, se respira y se vive',
+    description: 'Productos naturales artesanales de Colombia.',
+    url: 'https://natuaroma-app.vercel.app',
+    siteName: 'Natuaroma',
+    locale: 'es_CO',
+    type: 'website',
+    images: [{ url: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=1200&q=80', width: 1200, height: 630, alt: 'Natuaroma' }],
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -29,7 +64,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es" className={notoSerif.variable + ' ' + beVietnamPro.variable}>
       <body className="bg-background text-on-surface antialiased overflow-x-hidden" style={{ fontFamily: 'var(--font-body), sans-serif' }}>
 
-        {/* Floating glassmorphism nav */}
+        <ServiceWorkerRegistration />
+
         <header className="fixed top-4 left-4 right-4 z-50 max-w-7xl mx-auto">
           <div className="rounded-full px-6 py-3 bg-surface/80 backdrop-blur-md ambient-shadow flex justify-between items-center">
             <a href="/" className="text-xl font-display font-semibold tracking-tight text-primary italic">
@@ -38,8 +74,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <nav className="hidden md:flex gap-8 items-center">
               {[
                 { href: '/tienda', label: 'Tienda' },
+                { href: '/nosotros', label: 'Nosotros' },
                 { href: '/#wellness', label: 'Wellness' },
-                { href: '/#nosotros', label: 'Nosotros' },
               ].map(({ href, label }) => (
                 <a
                   key={href}
@@ -52,38 +88,87 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </nav>
             <div className="flex items-center gap-2">
               <CartButton />
+              <MobileNav />
             </div>
           </div>
         </header>
 
         <CartDrawer />
+        <WhatsAppButton />
 
         <main className="pt-20">
           {children}
         </main>
 
-        {/* Wave footer */}
         <footer className="footer-wave mt-24 bg-primary-container text-inverse-on-surface">
-          <div className="max-w-7xl mx-auto px-8 pt-20 pb-12 flex flex-col md:flex-row justify-between items-center gap-8">
-            <div>
-              <p className="text-2xl font-display font-semibold italic text-inverse-on-surface">Natuaroma</p>
-              <p className="text-sm text-inverse-on-surface/50 mt-1">Bienestar artesanal. Hecho en Colombia.</p>
-            </div>
-            <nav className="flex flex-wrap justify-center gap-6">
-              {[
-                { href: '/tienda', label: 'Tienda' },
-                { href: '/#wellness', label: 'Wellness App' },
-                { href: '/#nosotros', label: 'Nosotros' },
-                { href: 'mailto:natuaroma@gmail.com', label: 'Contacto' },
-              ].map(({ href, label }) => (
-                <a key={href} href={href} className="text-sm italic text-inverse-on-surface/60 hover:text-inverse-on-surface transition-colors duration-300">
-                  {label}
+          <div className="max-w-7xl mx-auto px-8 pt-20 pb-12">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+              <div className="md:col-span-1">
+                <p className="text-2xl font-display font-semibold italic text-inverse-on-surface mb-2">Natuaroma</p>
+                <p className="text-sm text-inverse-on-surface/50 leading-relaxed">Bienestar artesanal.<br />Hecho en Colombia con amor.</p>
+                <a
+                  href="https://instagram.com/natuaroma"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 mt-4 text-inverse-on-surface/60 hover:text-inverse-on-surface transition-colors text-sm"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+                  @natuaroma
                 </a>
-              ))}
-            </nav>
-            <p className="text-sm italic text-inverse-on-surface/40">
-              &copy; 2025 Natuaroma. Cultivado en Colombia.
-            </p>
+              </div>
+
+              <div>
+                <p className="text-xs uppercase tracking-widest font-semibold text-inverse-on-surface/40 mb-4">Tienda</p>
+                <ul className="space-y-2">
+                  {[
+                    { href: '/tienda', label: 'Todos los productos' },
+                    { href: '/tienda?categoria=Aceites', label: 'Aceites esenciales' },
+                    { href: '/tienda?categoria=Velas', label: 'Velas aromaticas' },
+                  ].map(({ href, label }) => (
+                    <li key={href}>
+                      <a href={href} className="text-sm text-inverse-on-surface/60 hover:text-inverse-on-surface transition-colors">{label}</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div>
+                <p className="text-xs uppercase tracking-widest font-semibold text-inverse-on-surface/40 mb-4">Wellness</p>
+                <ul className="space-y-2">
+                  {[
+                    { href: '/wellness', label: 'Portal Wellness' },
+                    { href: '/wellness/activar', label: 'Activar acceso' },
+                    { href: '/wellness/biblioteca', label: 'Biblioteca' },
+                    { href: '/wellness/habitos', label: 'Habitos diarios' },
+                  ].map(({ href, label }) => (
+                    <li key={href}>
+                      <a href={href} className="text-sm text-inverse-on-surface/60 hover:text-inverse-on-surface transition-colors">{label}</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div>
+                <p className="text-xs uppercase tracking-widest font-semibold text-inverse-on-surface/40 mb-4">Informacion</p>
+                <ul className="space-y-2">
+                  {[
+                    { href: '/nosotros', label: 'Nosotros' },
+                    { href: 'mailto:hola@natuaroma.co', label: 'Contacto' },
+                  ].map(({ href, label }) => (
+                    <li key={href}>
+                      <a href={href} className="text-sm text-inverse-on-surface/60 hover:text-inverse-on-surface transition-colors">{label}</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <div className="border-t border-inverse-on-surface/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+              <p className="text-sm italic text-inverse-on-surface/30">
+                &copy; 2025 Natuaroma. Todos los derechos reservados.
+              </p>
+              <p className="text-xs text-inverse-on-surface/20">Cultivado en Colombia</p>
+            </div>
           </div>
         </footer>
 

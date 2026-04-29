@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { BookOpen, Sparkles, Flame, Play, CheckCircle, ArrowRight, Leaf } from 'lucide-react'
+import { WellnessPWABanner } from '@/components/wellness/WellnessPWABanner'
 
 export default async function WellnessDashboardPage() {
   const supabase = await createClient()
@@ -68,6 +69,7 @@ export default async function WellnessDashboardPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10 space-y-12">
+      <WellnessPWABanner />
       {/* Saludo */}
       <div className="space-y-2">
         <h1 className="text-3xl font-display font-bold text-primary">Bienvenido a tu espacio</h1>

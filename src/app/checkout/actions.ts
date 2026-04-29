@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { MercadoPagoConfig, Preference } from 'mercadopago'
+import { sendOrderConfirmation, sendWellnessCode } from '@/lib/email'
 
 const MP_ACCESS_TOKEN = process.env.MERCADO_PAGO_ACCESS_TOKEN ?? ''
 
@@ -89,6 +90,31 @@ export async function createOrder(formData: FormData) {
   await supabase.from('order_items').insert(orderItemsData)
 
   if (!MP_ACCESS_TOKEN) {
+    const wellnessCode = 'WELLNESS-' + Math.random().toString(36).substring(2, 8).toUpperCase()
+    await db.from('wellness_access').insert({
+      order_id: order.id,
+      code: wellnessCode,
+      user_email: email,
+    }).catch(() => {})
+
+    const customerName = nombre_completo.split(' ')[0]
+    const items = cartItems.map((item) => {
+      const p = productMap.get(item.id)!
+      return { name: p.name, quantity: item.quantity, price: p.price }
+    })
+
+    await Promise.allSettled([
+      sendOrderConfirmation({
+        to: email,
+        orderNumber: order_number,
+        customerName,
+        items,
+        total,
+        address: nombre_completo + ' - ' + direccion + ', ' + ciudad,
+      }),
+      sendWellnessCode({ to: email, customerName, code: wellnessCode }),
+    ])
+
     redirect('/checkout/success?order=' + order_number + '&status=approved')
   }
 

@@ -1,3 +1,5 @@
+export const revalidate = 3600
+
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import { ProductCard } from '@/components/ProductCard'

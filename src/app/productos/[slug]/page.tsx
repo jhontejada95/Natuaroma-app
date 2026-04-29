@@ -3,12 +3,42 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { AddToCartButton } from '@/components/AddToCartButton'
 import { ArrowLeft } from 'lucide-react'
+import type { Metadata } from 'next'
+
+export const revalidate = 1800
 
 const FALLBACK_IMAGES: Record<string, string> = {
   aceites: 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=900&q=80',
   aromas: 'https://images.unsplash.com/photo-1589998059171-988d887df646?w=900&q=80',
   velas: 'https://images.unsplash.com/photo-1602523961358-f9f03dd557db?w=900&q=80',
   default: 'https://images.unsplash.com/photo-1612198188060-c7c2a3b66eae?w=900&q=80',
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params
+  const supabase = await createClient()
+  const { data: product } = await supabase
+    .from('products')
+    .select('name, short_description, images, categories(name)')
+    .eq('slug', slug)
+    .eq('status', 'active')
+    .single()
+
+  if (!product) return { title: 'Producto no encontrado — Natuaroma' }
+
+  const catName = (product.categories as any)?.name?.toLowerCase() ?? 'default'
+  const image = product.images?.[0] ?? FALLBACK_IMAGES[catName] ?? FALLBACK_IMAGES.default
+
+  return {
+    title: product.name + ' — Natuaroma',
+    description: product.short_description ?? product.name + ': producto natural artesanal de Colombia.',
+    openGraph: {
+      title: product.name,
+      description: product.short_description ?? '',
+      images: [{ url: image, width: 900, height: 900, alt: product.name }],
+      type: 'website',
+    },
+  }
 }
 
 export default async function ProductPage({
@@ -36,10 +66,8 @@ export default async function ProductPage({
 
   return (
     <div className="min-h-screen bg-background relative overflow-x-hidden">
-      {/* Ambient blobs */}
       <div className="fixed top-10 right-0 w-[35vw] h-[35vw] bg-primary-fixed-dim/15 rounded-full blur-3xl pointer-events-none -z-10" />
 
-      {/* Breadcrumb */}
       <div className="max-w-7xl mx-auto px-6 md:px-16 pt-10 pb-2">
         <a
           href="/tienda"
@@ -72,14 +100,11 @@ export default async function ProductPage({
                 </div>
               )}
             </div>
-
-            {/* Floating organic accent */}
             <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-secondary-fixed/30 organic-blob blur-2xl pointer-events-none" />
           </div>
 
           {/* Right: info */}
           <div className="space-y-8 lg:pt-6">
-            {/* Category label */}
             {(product.categories as any)?.name && (
               <p className="font-body text-xs uppercase tracking-[0.2em] text-outline">
                 {(product.categories as any).name}
@@ -127,25 +152,35 @@ export default async function ProductPage({
               disabled={product.stock === 0}
             />
 
-            {/* Alma Botanica section */}
+            {/* Story box */}
             <div className="bg-surface-container-low organic-card-2 p-6 space-y-2">
               <p className="font-display text-sm italic text-primary">Alma Botanica</p>
-              <p className="font-body text-sm text-on-surface-variant leading-relaxed">
-                Proveniente de las montanas colombianas, trabajado artesanalmente para preservar
-                la integridad de cada planta. Sin quimicos, sin atajos — solo naturaleza pura.
-              </p>
+              {product.description ? (
+                <p className="font-body text-sm text-on-surface-variant leading-relaxed">
+                  {product.description}
+                </p>
+              ) : (
+                <p className="font-body text-sm text-on-surface-variant leading-relaxed">
+                  Elaborado con ingredientes seleccionados de la naturaleza colombiana.
+                  Cada elemento de este producto ha sido cultivado y procesado con intencion,
+                  preservando su energia vital y propiedades naturales.
+                </p>
+              )}
             </div>
 
             {/* Trust badges */}
-            <div className="grid grid-cols-3 gap-4 pt-2 border-t border-outline-variant">
+            <div className="grid grid-cols-3 gap-4">
               {[
-                ['100% Natural', 'Sin quimicos'],
-                ['Envio nacional', 'Todo Colombia'],
-                ['Compra segura', 'Mercado Pago'],
-              ].map(([title, desc]) => (
-                <div key={title} className="text-center">
-                  <p className="font-body text-xs font-semibold text-primary">{title}</p>
-                  <p className="font-body text-[10px] text-on-surface-variant mt-0.5">{desc}</p>
+                { icon: '🌿', label: '100% Natural' },
+                { icon: '🤲', label: 'Artesanal' },
+                { icon: '🇨🇴', label: 'Hecho en Colombia' },
+              ].map(({ icon, label }) => (
+                <div
+                  key={label}
+                  className="bg-surface-container rounded-xl p-3 text-center space-y-1"
+                >
+                  <span className="text-2xl block">{icon}</span>
+                  <p className="font-body text-[10px] uppercase tracking-wider text-on-surface-variant">{label}</p>
                 </div>
               ))}
             </div>

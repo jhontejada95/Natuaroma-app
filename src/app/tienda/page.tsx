@@ -1,3 +1,13 @@
+import type { Metadata } from 'next'
+
+export const revalidate = 1800
+
+export const metadata: Metadata = {
+  title: 'Tienda — Natuaroma',
+  description: 'Explora nuestra cosecha de aceites esenciales, velas aromaticas y rituales naturales artesanales hechos en Colombia.',
+  openGraph: { title: 'Tienda Natuaroma — Botanicos artesanales de Colombia', description: 'Aceites esenciales, velas aromaticas y rituales naturales 100% artesanales.' },
+}
+
 import { createClient } from '@/lib/supabase/server'
 import { ProductCard } from '@/components/ProductCard'
 

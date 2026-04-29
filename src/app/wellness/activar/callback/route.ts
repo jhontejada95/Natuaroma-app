@@ -3,24 +3,22 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get('code')
-  const authCode = req.nextUrl.searchParams.get('code')
 
   const supabase = await createClient()
   const db = supabase as any
 
-  // Intercambiar token de auth
-  const tokenCode = req.nextUrl.searchParams.get('code')
-  if (tokenCode) {
-    await supabase.auth.exchangeCodeForSession(tokenCode)
+  // Exchange auth code for session
+  if (code) {
+    await supabase.auth.exchangeCodeForSession(code)
   }
 
   const { data: { user } } = await supabase.auth.getUser()
 
   if (user && code) {
-    // Activar el wellness_access para este usuario
+    // Find the wellness_access with this activation code
     const { data: access } = await db
       .from('wellness_access')
-      .select('id')
+      .select('id, password_set')
       .eq('code', code)
       .is('activated_at', null)
       .maybeSingle()
@@ -34,11 +32,14 @@ export async function GET(req: NextRequest) {
         })
         .eq('id', access.id)
 
-      // Actualizar perfil
-      await supabase
+      // Update profile
+      await db
         .from('profiles')
-        .update({ wellness_active: true, wellness_code: code } as any)
+        .update({ wellness_active: true })
         .eq('id', user.id)
+
+      // First activation — send to password setup
+      return NextResponse.redirect(new URL('/wellness/activar/setup?code=' + code, req.url))
     }
   }
 

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { MercadoPagoConfig, Payment } from 'mercadopago'
+import { sendOrderConfirmation, sendWellnessCode } from '@/lib/email'
 
 const MP_ACCESS_TOKEN = process.env.MERCADO_PAGO_ACCESS_TOKEN ?? ''
 
@@ -39,7 +40,7 @@ export async function POST(req: NextRequest) {
 
       const { data: order } = await supabase
         .from('orders')
-        .select('customer_email, order_number')
+        .select('customer_email, order_number, shipping_address, subtotal')
         .eq('id', orderId)
         .single()
 
@@ -52,8 +53,42 @@ export async function POST(req: NextRequest) {
 
         await db
           .from('orders')
-          .update({ early_access_sent: false })
+          .update({ early_access_sent: true })
           .eq('id', orderId)
+
+        const { data: orderItems } = await db
+          .from('order_items')
+          .select('product_name, quantity, price')
+          .eq('order_id', orderId)
+
+        const addr = order.shipping_address as any
+        const addressStr = addr
+          ? addr.nombre_completo + ' - ' + addr.direccion + ', ' + addr.ciudad
+          : ''
+
+        const items = (orderItems ?? []).map((i: any) => ({
+          name: i.product_name,
+          quantity: i.quantity,
+          price: i.price,
+        }))
+
+        const customerName = addr?.nombre_completo?.split(' ')[0] ?? 'Cliente'
+
+        await Promise.allSettled([
+          sendOrderConfirmation({
+            to: order.customer_email,
+            orderNumber: order.order_number,
+            customerName,
+            items,
+            total: order.subtotal,
+            address: addressStr,
+          }),
+          sendWellnessCode({
+            to: order.customer_email,
+            customerName,
+            code,
+          }),
+        ])
       }
     } else if (status === 'rejected') {
       await supabase
