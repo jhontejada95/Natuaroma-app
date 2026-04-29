@@ -1,18 +1,15 @@
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import { LayoutDashboard, Package, ShoppingCart, Leaf, LogOut } from 'lucide-react'
-
-const NAV_ITEMS = [
-  { href: '/admin', icon: 'LayoutDashboard', label: 'Dashboard' },
-  { href: '/admin/products', icon: 'Package', label: 'Catalogo' },
-  { href: '/admin/orders', icon: 'ShoppingCart', label: 'Pedidos' },
-  { href: '/admin/wellness', icon: 'Leaf', label: 'Wellness' },
-]
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/admin/login')
+
+  // Sin usuario = solo puede ser /admin/login (el middleware bloquea todo lo demás)
+  // Renderizamos solo el children sin sidebar para no causar redirect loop
+  if (!user) {
+    return <>{children}</>
+  }
 
   return (
     <div className="flex h-screen bg-surface-dim font-sans text-foreground">
@@ -28,7 +25,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <LayoutDashboard size={18} /> Dashboard
           </a>
           <a href="/admin/products" className="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors font-medium text-sm">
-            <Package size={18} /> Catalogo
+            <Package size={18} /> Catálogo
           </a>
           <a href="/admin/orders" className="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors font-medium text-sm">
             <ShoppingCart size={18} /> Pedidos
@@ -41,7 +38,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <div className="p-4 border-t border-outline-variant">
           <form action="/auth/signout" method="POST">
             <button type="submit" className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-error hover:bg-error-container transition-colors font-medium text-left text-sm">
-              <LogOut size={18} /> Cerrar sesion
+              <LogOut size={18} /> Cerrar sesión
             </button>
           </form>
         </div>
