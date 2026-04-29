@@ -8,10 +8,14 @@ import type { Metadata } from 'next'
 export const revalidate = 3600
 
 export async function generateStaticParams() {
-  const { createClient } = await import('@/lib/supabase/server')
-  const supabase = await createClient()
+  // Usar cliente base sin SSR/cookies — generateStaticParams corre en build time
+  const { createClient } = await import('@supabase/supabase-js')
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
   const { data } = await supabase.from('products').select('slug').eq('status', 'active')
-  return (data ?? []).map((p) => ({ slug: p.slug }))
+  return (data ?? []).map((p: { slug: string }) => ({ slug: p.slug }))
 }
 
 const FALLBACK_IMAGES: Record<string, string> = {
