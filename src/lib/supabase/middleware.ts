@@ -59,5 +59,8 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
+  // Inyectar pathname para que los layouts puedan leerlo
+  supabaseResponse.headers.set('x-pathname', request.nextUrl.pathname)
+
   return supabaseResponse
 }

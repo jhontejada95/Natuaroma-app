@@ -1,8 +1,20 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import { Leaf, BookOpen, Sparkles, LayoutDashboard, LogOut } from 'lucide-react'
 
+// Rutas dentro de /wellness que NO requieren sesión ni acceso wellness
+const PUBLIC_WELLNESS = ['/wellness/login', '/wellness/activar']
+
 export default async function WellnessLayout({ children }: { children: React.ReactNode }) {
+  const headersList = await headers()
+  const pathname = headersList.get('x-pathname') ?? ''
+
+  // Si es una ruta pública, renderizar sin verificar auth
+  if (PUBLIC_WELLNESS.some(p => pathname.startsWith(p))) {
+    return <>{children}</>
+  }
+
   const supabase = await createClient()
   const db = supabase as any
 
