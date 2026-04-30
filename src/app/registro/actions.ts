@@ -14,7 +14,7 @@ async function sendTelegramNotification(message: string) {
       body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'HTML' }),
     })
   } catch (err) {
-    console.error('[telegram] Error enviando notificación:', err)
+    console.error('[telegram] Error enviando notificacion:', err)
   }
 }
 
@@ -29,7 +29,6 @@ export async function submitPhysicalRegistration(formData: FormData) {
 
   const code = 'NAT-' + Math.random().toString(36).substring(2, 8).toUpperCase()
 
-  // Usar cliente admin para bypass de RLS (inserción anónima desde tienda física)
   const db = createAdminClient()
 
   const { error } = await db.from('wellness_access').insert({
@@ -44,16 +43,17 @@ export async function submitPhysicalRegistration(formData: FormData) {
 
   if (error) {
     console.error('[registro] Error creando solicitud:', error)
-    redirect('/registro?error=Ocurrió un error al guardar. Intenta de nuevo.')
+    redirect('/registro?error=Ocurrio un error al guardar. Intenta de nuevo.')
   }
 
-  await sendTelegramNotification(
-    `🏪 <b>Nueva solicitud física</b>\n\n` +
-    `👤 <b>Nombre:</b> ${name}\n` +
-    `📧 <b>Correo:</b> ${email}\n` +
-    `📦 <b>Productos:</b> ${productsRaw.join(', ')}\n\n` +
-    `➡️ Aprueba en: https://www.natuaroma.shop/admin/wellness`
-  )
+  const msg =
+    '<b>Nueva solicitud fisica</b>\n\n' +
+    '<b>Nombre:</b> ' + name + '\n' +
+    '<b>Correo:</b> ' + email + '\n' +
+    '<b>Productos:</b> ' + productsRaw.join(', ') + '\n\n' +
+    'Aprueba en: https://www.natuaroma.shop/admin/wellness'
+
+  await sendTelegramNotification(msg)
 
   redirect('/registro?success=true')
 }

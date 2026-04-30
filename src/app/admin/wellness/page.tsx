@@ -1,9 +1,8 @@
 import { createAdminClient } from '@/lib/supabase/admin'
-import { Leaf, CheckCircle, Clock, XCircle, Users, Key, BookOpen, UserPlus, Store, Send } from 'lucide-react'
-import { generateWellnessCode, approvePhysicalRequest, createInvitation } from './actions'
+import { CheckCircle, Clock, XCircle, Users, Key, BookOpen, UserPlus, Store, Send } from 'lucide-react'
+import { approvePhysicalRequest, createInvitation } from './actions'
 
 export default async function AdminWellnessPage() {
-  // Usar admin client para ver TODOS los registros sin restricciones de RLS
   const db = createAdminClient()
 
   const { data: codes } = await db
@@ -18,9 +17,9 @@ export default async function AdminWellnessPage() {
   const total = all.length
 
   const sourceLabel: Record<string, string> = {
-    purchase: '🛒 Compra',
-    physical: '🏪 Tienda',
-    invitation: '🎁 Invitación',
+    purchase: 'Compra',
+    physical: 'Tienda fisica',
+    invitation: 'Invitacion',
   }
 
   return (
@@ -41,7 +40,7 @@ export default async function AdminWellnessPage() {
         {[
           { label: 'Total accesos', value: total, icon: Key, bg: 'bg-surface-container', color: 'text-primary' },
           { label: 'Activados', value: activated, icon: CheckCircle, bg: 'bg-primary-fixed', color: 'text-primary' },
-          { label: 'Pendientes físicos', value: pendingCount, icon: Store, bg: pendingCount > 0 ? 'bg-secondary-fixed' : 'bg-surface-container', color: pendingCount > 0 ? 'text-secondary' : 'text-outline' },
+          { label: 'Pendientes fisicos', value: pendingCount, icon: Store, bg: pendingCount > 0 ? 'bg-secondary-fixed' : 'bg-surface-container', color: pendingCount > 0 ? 'text-secondary' : 'text-outline' },
           { label: 'Invitaciones', value: all.filter((c: any) => c.source === 'invitation').length, icon: UserPlus, bg: 'bg-surface-container', color: 'text-primary' },
         ].map(({ label, value, icon: Icon, bg, color }) => (
           <div key={label} className="bg-surface rounded-2xl border border-outline-variant p-5">
@@ -54,24 +53,26 @@ export default async function AdminWellnessPage() {
         ))}
       </div>
 
-      {/* Solicitudes físicas pendientes */}
+      {/* Solicitudes fisicas pendientes */}
       {pendingPhysical.length > 0 && (
         <div className="bg-surface rounded-2xl border-2 border-secondary-fixed overflow-hidden">
           <div className="px-6 py-4 border-b border-outline-variant flex items-center gap-2 bg-secondary-fixed/20">
             <Store size={16} className="text-primary" />
-            <h2 className="font-semibold text-primary">Solicitudes físicas pendientes</h2>
+            <h2 className="font-semibold text-primary">Solicitudes fisicas pendientes</h2>
             <span className="ml-auto bg-primary text-surface text-xs font-bold px-2.5 py-1 rounded-full">{pendingPhysical.length}</span>
           </div>
           <div className="divide-y divide-outline-variant/50">
             {pendingPhysical.map((c: any) => (
               <div key={c.id} className="px-6 py-4 flex flex-col md:flex-row md:items-center gap-4">
                 <div className="flex-1 space-y-1">
-                  <p className="font-semibold text-sm text-on-surface">{c.requester_name ?? '—'}</p>
+                  <p className="font-semibold text-sm text-on-surface">{c.requester_name ?? '-'}</p>
                   <p className="text-xs text-on-surface-variant">{c.user_email}</p>
-                  {c.products_claimed?.length > 0 && (
+                  {Array.isArray(c.products_claimed) && c.products_claimed.length > 0 && (
                     <p className="text-xs text-outline">Productos: {c.products_claimed.join(', ')}</p>
                   )}
-                  <p className="text-xs text-outline">{new Date(c.created_at).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
+                  <p className="text-xs text-outline">
+                    {new Date(c.created_at).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                  </p>
                 </div>
                 <form action={approvePhysicalRequest.bind(null, c.id)}>
                   <button type="submit" className="flex items-center gap-2 bg-primary text-surface px-5 py-2 rounded-full text-sm font-semibold hover:bg-primary-container transition-colors">
@@ -84,11 +85,11 @@ export default async function AdminWellnessPage() {
         </div>
       )}
 
-      {/* Crear invitación */}
+      {/* Crear invitacion */}
       <div className="bg-surface rounded-2xl border border-outline-variant overflow-hidden">
         <div className="px-6 py-4 border-b border-outline-variant flex items-center gap-2">
           <UserPlus size={16} className="text-primary" />
-          <h2 className="font-semibold text-primary">Crear invitación</h2>
+          <h2 className="font-semibold text-primary">Crear invitacion</h2>
           <span className="text-xs text-outline ml-2">Para pruebas, beta testers o invitados especiales</span>
         </div>
         <form action={createInvitation} className="p-6">
@@ -116,7 +117,7 @@ export default async function AdminWellnessPage() {
             </div>
           </div>
           <button type="submit" className="mt-4 flex items-center gap-2 bg-secondary-fixed text-on-secondary-fixed px-6 py-2.5 rounded-full text-sm font-semibold hover:bg-secondary-fixed-dim transition-colors">
-            <Send size={14} /> Enviar invitación
+            <Send size={14} /> Enviar invitacion
           </button>
         </form>
       </div>
@@ -131,7 +132,7 @@ export default async function AdminWellnessPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-outline-variant">
-                {['Código', 'Nombre / Email', 'Origen', 'Estado', 'Activado', 'Creado'].map((h) => (
+                {['Codigo', 'Nombre / Email', 'Origen', 'Estado', 'Activado', 'Creado'].map((h) => (
                   <th key={h} className="text-left px-6 py-3 text-xs font-semibold text-on-surface-variant uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
@@ -147,8 +148,8 @@ export default async function AdminWellnessPage() {
                       <span className="font-mono text-sm font-semibold text-primary tracking-widest">{c.code}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-sm text-on-surface">{c.requester_name ?? '—'}</p>
-                      <p className="text-xs text-on-surface-variant">{c.user_email ?? '—'}</p>
+                      <p className="text-sm text-on-surface">{c.requester_name ?? '-'}</p>
+                      <p className="text-xs text-on-surface-variant">{c.user_email ?? '-'}</p>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-xs text-on-surface-variant">{sourceLabel[c.source] ?? c.source}</span>
@@ -174,7 +175,7 @@ export default async function AdminWellnessPage() {
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-xs text-on-surface-variant">
-                        {c.activated_at ? new Date(c.activated_at).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: '2-digit' }) : '—'}
+                        {c.activated_at ? new Date(c.activated_at).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: '2-digit' }) : '-'}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -187,7 +188,7 @@ export default async function AdminWellnessPage() {
               })}
               {all.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-on-surface-variant text-sm">No hay accesos registrados aún</td>
+                  <td colSpan={6} className="px-6 py-12 text-center text-on-surface-variant text-sm">No hay accesos registrados aun</td>
                 </tr>
               )}
             </tbody>
