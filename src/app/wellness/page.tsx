@@ -1,10 +1,10 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { BookOpen, Sparkles, Flame, Play, CheckCircle, ArrowRight, Leaf } from 'lucide-react'
 import { WellnessPWABanner } from '@/components/wellness/WellnessPWABanner'
 
 export default async function WellnessDashboardPage() {
-  const supabase = await createClient()
-  const db = supabase as any
+  const supabase = createAdminClient()
+  const db = supabase
 
   const { data: { user } } = await supabase.auth.getUser()
 

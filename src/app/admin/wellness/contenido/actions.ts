@@ -1,19 +1,19 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 
 export async function toggleContentPublished(contentId: string, newValue: boolean) {
-  const supabase = await createClient()
-  const db = supabase as any
+  const supabase = createAdminClient()
+  const db = supabase
   await db.from('wellness_content').update({ is_published: newValue }).eq('id', contentId)
   revalidatePath('/admin/wellness/contenido')
   revalidatePath('/wellness/biblioteca')
 }
 
 export async function createWellnessContent(formData: FormData) {
-  const supabase = await createClient()
-  const db = supabase as any
+  const supabase = createAdminClient()
+  const db = supabase
 
   const title = formData.get('title') as string
   const slug = formData.get('slug') as string

@@ -1,9 +1,9 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { Plus, Package, Edit3 } from 'lucide-react'
 import { DeleteProductButton } from '@/components/admin/DeleteProductButton'
 
 export default async function AdminProductsPage() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data: products } = await supabase
     .from('products')
     .select('*, categories(name)')

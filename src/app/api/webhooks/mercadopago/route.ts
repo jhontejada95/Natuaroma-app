@@ -2,12 +2,42 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { MercadoPagoConfig, Payment } from 'mercadopago'
 import { sendOrderConfirmation, sendWellnessCode } from '@/lib/email'
+import { createHmac } from 'crypto'
 
 const MP_ACCESS_TOKEN = process.env.MERCADO_PAGO_ACCESS_TOKEN ?? ''
+const MP_WEBHOOK_SECRET = process.env.MERCADOPAGO_WEBHOOK_SECRET ?? ''
+
+/**
+ * Verifica la firma HMAC del webhook de MercadoPago.
+ * Solo bloquea si MERCADOPAGO_WEBHOOK_SECRET esta configurado en las env vars.
+ * Docs: https://www.mercadopago.com.co/developers/es/docs/your-integrations/notifications/webhooks
+ */
+function verifyMercadoPagoSignature(req: NextRequest, dataId: string): boolean {
+  if (!MP_WEBHOOK_SECRET) return true
+
+  const xSignature = req.headers.get('x-signature') ?? ''
+  const xRequestId = req.headers.get('x-request-id') ?? ''
+
+  const parts = Object.fromEntries(xSignature.split(',').map((p) => p.split('=')))
+  const ts = parts['ts'] ?? ''
+  const v1 = parts['v1'] ?? ''
+  if (!ts || !v1) return false
+
+  const manifest = `id:${dataId};request-id:${xRequestId};ts:${ts};`
+  const expected = createHmac('sha256', MP_WEBHOOK_SECRET).update(manifest).digest('hex')
+
+  return expected === v1
+}
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json()
+    const rawBody = await req.text()
+    let body: any
+    try {
+      body = JSON.parse(rawBody)
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+    }
 
     if (body.type !== 'payment' || !body.data?.id) {
       return NextResponse.json({ ok: true })
@@ -18,6 +48,13 @@ export async function POST(req: NextRequest) {
     }
 
     const paymentId = String(body.data.id)
+
+    // Verificar firma HMAC antes de procesar
+    if (!verifyMercadoPagoSignature(req, paymentId)) {
+      console.error('[webhook] Firma invalida — request no autorizado')
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const client = new MercadoPagoConfig({ accessToken: MP_ACCESS_TOKEN })
     const paymentClient = new Payment(client)
     const payment = await paymentClient.get({ id: paymentId })
@@ -27,7 +64,6 @@ export async function POST(req: NextRequest) {
 
     if (!orderId) return NextResponse.json({ ok: true })
 
-    // Usar admin client — el webhook corre sin sesion de usuario
     const db = createAdminClient()
 
     if (status === 'approved') {

@@ -1,10 +1,10 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 
 export async function updateOrderStatus(orderId: string, newStatus: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   await supabase
     .from('orders')
     .update({ order_status: newStatus })

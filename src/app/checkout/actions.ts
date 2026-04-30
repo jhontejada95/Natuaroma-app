@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import { MercadoPagoConfig, Preference } from 'mercadopago'
 import { sendOrderConfirmation, sendWellnessCode } from '@/lib/email'
@@ -8,8 +8,8 @@ import { sendOrderConfirmation, sendWellnessCode } from '@/lib/email'
 const MP_ACCESS_TOKEN = process.env.MERCADO_PAGO_ACCESS_TOKEN ?? ''
 
 export async function createOrder(formData: FormData) {
-  const supabase = await createClient()
-  const db = supabase as any
+  const supabase = createAdminClient()
+  const db = supabase
 
   const email = formData.get('email') as string
   const nombre_completo = formData.get('nombre_completo') as string
@@ -88,15 +88,34 @@ export async function createOrder(formData: FormData) {
     }
   })
 
-  await supabase.from('order_items').insert(orderItemsData)
+  const { error: itemsError } = await supabase.from('order_items').insert(orderItemsData)
+  if (itemsError) {
+    console.error('[checkout] Error insertando order_items:', itemsError)
+    await supabase.from('orders').update({ notes: 'ERROR:order_items_failed' }).eq('id', order.id)
+    redirect('/checkout?error=Error al registrar los productos. Contactanos con tu numero de orden: ' + order_number)
+  }
 
   if (!MP_ACCESS_TOKEN) {
-    const wellnessCode = 'WELLNESS-' + Math.random().toString(36).substring(2, 8).toUpperCase()
-    await db.from('wellness_access').insert({
-      order_id: order.id,
-      code: wellnessCode,
-      user_email: email,
-    }).catch(() => {})
+    const wellnessCode = 'NAT-' + Math.random().toString(36).substring(2, 8).toUpperCase()
+
+    const { data: existingAccess } = await db
+      .from('wellness_access')
+      .select('id')
+      .eq('user_email', email)
+      .limit(1)
+      .maybeSingle()
+
+    if (!existingAccess) {
+      try {
+        await db.from('wellness_access').insert({
+          order_id: order.id,
+          code: wellnessCode,
+          user_email: email,
+          source: 'purchase',
+          status: 'active',
+        })
+      } catch (_) { /* no bloquear el flujo si falla */ }
+    }
 
     const customerName = nombre_completo.split(' ')[0]
     const items = cartItems.map((item) => {
@@ -104,7 +123,7 @@ export async function createOrder(formData: FormData) {
       return { name: p.name, quantity: item.quantity, price: p.price }
     })
 
-    await Promise.allSettled([
+    const emailPromises: Promise<any>[] = [
       sendOrderConfirmation({
         to: email,
         orderNumber: order_number,
@@ -113,8 +132,11 @@ export async function createOrder(formData: FormData) {
         total,
         address: nombre_completo + ' - ' + direccion + ', ' + ciudad + ', ' + departamento,
       }),
-      sendWellnessCode({ to: email, customerName, code: wellnessCode }),
-    ])
+    ]
+    if (!existingAccess) {
+      emailPromises.push(sendWellnessCode({ to: email, customerName, code: wellnessCode }))
+    }
+    await Promise.allSettled(emailPromises)
 
     redirect('/checkout/success?order=' + order_number + '&status=approved')
   }
@@ -123,7 +145,6 @@ export async function createOrder(formData: FormData) {
   const mpClient = new MercadoPagoConfig({ accessToken: MP_ACCESS_TOKEN })
   const preferenceClient = new Preference(mpClient)
 
-  // Items de productos
   const mpItems = cartItems.map((item) => {
     const p = productMap.get(item.id)!
     return {
@@ -135,11 +156,10 @@ export async function createOrder(formData: FormData) {
     }
   })
 
-  // Agregar envío como item separado en Mercado Pago
   if (shipping_cost > 0) {
     mpItems.push({
       id: 'envio',
-      title: `Envío a ${departamento}`,
+      title: 'Envio a ' + departamento,
       quantity: 1,
       unit_price: shipping_cost,
       currency_id: 'COP',

@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { updateProduct } from '@/app/admin/products/actions'
 import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
@@ -17,7 +17,7 @@ export default async function EditProductPage({
 }) {
   const { id } = await params
   const { error: errorMsg } = await searchParams
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const [{ data: product }, { data: categories }] = await Promise.all([
     supabase.from('products').select('*').eq('id', id).single(),

@@ -1,11 +1,11 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
 export async function createProduct(formData: FormData) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const name = formData.get('name') as string
   const slug = formData.get('slug') as string

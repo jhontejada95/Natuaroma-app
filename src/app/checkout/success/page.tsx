@@ -1,5 +1,5 @@
 import { CheckCircle, ArrowRight, Gift } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export default async function CheckoutSuccessPage({
   searchParams,
@@ -13,9 +13,8 @@ export default async function CheckoutSuccessPage({
 
   let wellnessCode: string | null = null
   if (isApproved && orderNumber) {
-    const supabase = await createClient()
-    const db = supabase as any
-    const { data: order } = await supabase
+    const db = createAdminClient()
+    const { data: order } = await db
       .from('orders')
       .select('id')
       .eq('order_number', orderNumber)

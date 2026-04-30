@@ -36,7 +36,9 @@ export function WellnessPasswordLogin({ next, email = '', welcome = false }: Pro
 
     // Hard navigation — garantiza que el servidor lea la nueva sesion desde las cookies
     // Evita race conditions de router.push + router.refresh simultaneos
-    window.location.href = next
+    // Solo permitir rutas internas para evitar open redirect
+    const safePath = next.startsWith('/') && !next.startsWith('//') ? next : '/wellness'
+    window.location.href = safePath
   }
 
   return (

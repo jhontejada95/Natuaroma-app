@@ -1,11 +1,11 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 
 export async function toggleHabit(habitName: string, markDone: boolean) {
-  const supabase = await createClient()
-  const db = supabase as any
+  const supabase = createAdminClient()
+  const db = supabase
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return

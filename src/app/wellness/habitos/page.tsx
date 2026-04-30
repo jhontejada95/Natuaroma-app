@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { Flame, CheckCircle, Plus } from 'lucide-react'
 import { toggleHabit } from './actions'
 
@@ -12,8 +12,8 @@ const HABITS = [
 ]
 
 export default async function HabitosPage() {
-  const supabase = await createClient()
-  const db = supabase as any
+  const supabase = createAdminClient()
+  const db = supabase
 
   const { data: { user } } = await supabase.auth.getUser()
 

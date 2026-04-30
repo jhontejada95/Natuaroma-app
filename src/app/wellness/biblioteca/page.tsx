@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { BookOpen, Play, Sparkles, Leaf, Clock } from 'lucide-react'
 
 const TYPE_CONFIG: Record<string, { label: string; icon: any; color: string }> = {
@@ -15,8 +15,8 @@ export default async function BibliotecaPage({
   searchParams: Promise<{ tipo?: string }>
 }) {
   const params = await searchParams
-  const supabase = await createClient()
-  const db = supabase as any
+  const supabase = createAdminClient()
+  const db = supabase
 
   let query = db
     .from('wellness_content')

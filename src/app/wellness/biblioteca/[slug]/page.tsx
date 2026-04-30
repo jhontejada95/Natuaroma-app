@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { notFound } from 'next/navigation'
 import { ArrowLeft, Clock, BookOpen, Play, Sparkles, Leaf } from 'lucide-react'
 
@@ -16,8 +16,8 @@ export default async function ContenidoDetailPage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const supabase = await createClient()
-  const db = supabase as any
+  const supabase = createAdminClient()
+  const db = supabase
 
   const { data: item } = await db
     .from('wellness_content')

@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { createProduct } from './actions'
 import { ArrowLeft } from 'lucide-react'
 import { CloudinaryUpload } from '@/components/CloudinaryUpload'
@@ -7,7 +7,7 @@ const inputClass = 'w-full px-4 py-2.5 bg-surface-dim border border-outline-vari
 const labelClass = 'block text-sm font-semibold text-foreground mb-1.5'
 
 export default async function NewProductPage() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data: categories } = await supabase.from('categories').select('id, name')
 
   return (
