@@ -1,28 +1,25 @@
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import { Leaf } from 'lucide-react'
 import { setupWellnessAccount } from './actions'
 
 export default async function WellnessSetupPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; code?: string }>
+  searchParams: Promise<{ error?: string; code?: string; email?: string }>
 }) {
   const params = await searchParams
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const code = params?.code ?? ''
+  const email = params?.email ?? ''
 
-  if (!user) redirect('/wellness/login')
-
-  const db = supabase as any
-  const { data: access } = await db
-    .from('wellness_access')
-    .select('password_set')
-    .eq('user_id', user.id)
-    .not('activated_at', 'is', null)
-    .maybeSingle()
-
-  if (access?.password_set) redirect('/wellness')
+  if (!code || !email) {
+    return (
+      <div className="min-h-screen bg-primary flex items-center justify-center px-6">
+        <div className="max-w-md w-full text-center space-y-4">
+          <p className="text-surface/70">Enlace invalido. Por favor vuelve a activar tu codigo.</p>
+          <a href="/wellness/activar" className="text-accent underline text-sm">Volver</a>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-primary flex items-center justify-center px-6 py-12">
@@ -32,10 +29,16 @@ export default async function WellnessSetupPage({
           <div className="w-16 h-16 bg-accent/20 rounded-full flex items-center justify-center mx-auto">
             <Leaf size={32} className="text-accent" />
           </div>
-          <h1 className="text-3xl font-display font-bold text-surface">Configura tu cuenta</h1>
+          <div className="inline-flex items-center gap-2 text-surface/40 text-xs uppercase tracking-widest">
+            <span className="w-4 h-px bg-surface/20" />
+            Paso 2 de 2
+            <span className="w-4 h-px bg-surface/20" />
+          </div>
+          <h1 className="text-3xl font-display font-bold text-surface">Crea tu contrasena</h1>
           <p className="text-surface/60 text-sm">
-            Crea una contrasena para ingresar facilmente en el futuro.
+            Con esto podras ingresar en cualquier momento.
           </p>
+          <p className="text-accent/80 text-xs font-mono">{email}</p>
         </div>
 
         {params?.error && (
@@ -48,7 +51,8 @@ export default async function WellnessSetupPage({
           action={setupWellnessAccount}
           className="bg-white/5 rounded-2xl p-8 border border-white/10 space-y-6"
         >
-          <input type="hidden" name="code" value={params?.code ?? ''} />
+          <input type="hidden" name="code" value={code} />
+          <input type="hidden" name="email" value={email} />
 
           <div className="space-y-4">
             <div>
@@ -79,8 +83,7 @@ export default async function WellnessSetupPage({
             </div>
           </div>
 
-          <div className="bg-white/5 rounded-xl p-4 space-y-3">
-            <p className="text-surface/80 text-sm font-medium">Comunicaciones</p>
+          <div className="bg-white/5 rounded-xl p-4">
             <label className="flex items-start gap-3 cursor-pointer">
               <input
                 type="checkbox"
@@ -102,15 +105,6 @@ export default async function WellnessSetupPage({
             Guardar y entrar al portal
           </button>
         </form>
-
-        <div className="text-center">
-          <a
-            href="/wellness"
-            className="text-surface/40 text-sm hover:text-surface/60 transition-colors"
-          >
-            Omitir por ahora &rarr;
-          </a>
-        </div>
       </div>
     </div>
   )

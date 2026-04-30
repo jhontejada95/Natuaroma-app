@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { MercadoPagoConfig, Payment } from 'mercadopago'
 import { sendOrderConfirmation, sendWellnessCode } from '@/lib/email'
@@ -13,7 +13,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true })
     }
 
-    // Ignorar notificaciones de prueba / simulacion
     if (body.live_mode === false) {
       return NextResponse.json({ ok: true })
     }
@@ -28,8 +27,8 @@ export async function POST(req: NextRequest) {
 
     if (!orderId) return NextResponse.json({ ok: true })
 
-    const supabase = await createClient()
-    const db = supabase as any
+    // Usar admin client — el webhook corre sin sesion de usuario
+    const db = createAdminClient()
 
     if (status === 'approved') {
       await db
@@ -41,35 +40,23 @@ export async function POST(req: NextRequest) {
         })
         .eq('id', orderId)
 
-      const code = 'WELLNESS-' + Math.random().toString(36).substring(2, 8).toUpperCase()
-
-      const { data: order } = await supabase
+      const { data: order } = await db
         .from('orders')
         .select('customer_email, order_number, shipping_address, subtotal')
         .eq('id', orderId)
         .single()
 
       if (order) {
-        await db.from('wellness_access').insert({
-          order_id: orderId,
-          code,
-          user_email: order.customer_email,
-        })
-
-        await db
-          .from('orders')
-          .update({ early_access_sent: true })
-          .eq('id', orderId)
+        const addr = order.shipping_address as any
+        const addressStr = addr
+          ? addr.nombre_completo + ' - ' + addr.direccion + ', ' + addr.ciudad
+          : ''
+        const customerName = addr?.nombre_completo?.split(' ')[0] ?? 'Cliente'
 
         const { data: orderItems } = await db
           .from('order_items')
           .select('product_name, quantity, price')
           .eq('order_id', orderId)
-
-        const addr = order.shipping_address as any
-        const addressStr = addr
-          ? addr.nombre_completo + ' - ' + addr.direccion + ', ' + addr.ciudad
-          : ''
 
         const items = (orderItems ?? []).map((i: any) => ({
           name: i.product_name,
@@ -77,26 +64,62 @@ export async function POST(req: NextRequest) {
           price: i.price,
         }))
 
-        const customerName = addr?.nombre_completo?.split(' ')[0] ?? 'Cliente'
+        // Verificar si el email ya tiene acceso Wellness (compra repetida)
+        const { data: existingAccess } = await db
+          .from('wellness_access')
+          .select('id')
+          .eq('user_email', order.customer_email)
+          .limit(1)
+          .maybeSingle()
 
-        await Promise.allSettled([
-          sendOrderConfirmation({
+        const isFirstPurchase = !existingAccess
+
+        if (isFirstPurchase) {
+          const code = 'NAT-' + Math.random().toString(36).substring(2, 8).toUpperCase()
+
+          await db.from('wellness_access').insert({
+            order_id: orderId,
+            code,
+            user_email: order.customer_email,
+            source: 'purchase',
+            status: 'active',
+          })
+
+          await db
+            .from('orders')
+            .update({ early_access_sent: true })
+            .eq('id', orderId)
+
+          // Primera compra: confirmacion + codigo wellness
+          await Promise.allSettled([
+            sendOrderConfirmation({
+              to: order.customer_email,
+              orderNumber: order.order_number,
+              customerName,
+              items,
+              total: order.subtotal,
+              address: addressStr,
+            }),
+            sendWellnessCode({
+              to: order.customer_email,
+              customerName,
+              code,
+            }),
+          ])
+        } else {
+          // Compra repetida: solo confirmacion de orden
+          await sendOrderConfirmation({
             to: order.customer_email,
             orderNumber: order.order_number,
             customerName,
             items,
             total: order.subtotal,
             address: addressStr,
-          }),
-          sendWellnessCode({
-            to: order.customer_email,
-            customerName,
-            code,
-          }),
-        ])
+          })
+        }
       }
     } else if (status === 'rejected') {
-      await supabase
+      await db
         .from('orders')
         .update({ payment_status: 'failed', order_status: 'cancelled' })
         .eq('id', orderId)

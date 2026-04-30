@@ -2,7 +2,13 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { CheckCircle, Clock, XCircle, Users, Key, BookOpen, UserPlus, Store, Send } from 'lucide-react'
 import { approvePhysicalRequest, createInvitation } from './actions'
 
-export default async function AdminWellnessPage() {
+export default async function AdminWellnessPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ inv_error?: string }>
+}) {
+  const sp = await searchParams
+  const invError = sp?.inv_error ?? ''
   const db = createAdminClient()
 
   const { data: codes } = await db
@@ -92,6 +98,11 @@ export default async function AdminWellnessPage() {
           <h2 className="font-semibold text-primary">Crear invitacion</h2>
           <span className="text-xs text-outline ml-2">Para pruebas, beta testers o invitados especiales</span>
         </div>
+        {invError && (
+          <div className="mx-6 mt-4 p-3 bg-error-container text-on-error-container rounded-xl text-sm">
+            {invError}
+          </div>
+        )}
         <form action={createInvitation} className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>

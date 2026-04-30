@@ -2,29 +2,26 @@
 
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 import { sendWellnessCode } from '@/lib/email'
 
 function generateCode() {
   return 'NAT-' + Math.random().toString(36).substring(2, 8).toUpperCase()
 }
 
-// Aprobar solicitud física → activar + enviar email
+// Aprobar solicitud fisica
 export async function approvePhysicalRequest(id: string) {
   const db = createAdminClient()
 
-  // Leer el registro (admin client bypasa RLS)
   const { data: request } = await db
     .from('wellness_access')
     .select('user_email, requester_name, code, status')
     .eq('id', id)
     .single()
 
-  if (!request) {
-    console.error('[wellness] approvePhysicalRequest: registro no encontrado', id)
-    return
-  }
+  if (!request) return
 
-  // Evitar doble aprobación
+  // Evitar doble aprobacion
   if (request.status === 'active') {
     revalidatePath('/admin/wellness')
     return
@@ -44,7 +41,7 @@ export async function approvePhysicalRequest(id: string) {
   revalidatePath('/admin/wellness')
 }
 
-// Crear invitación manual desde admin
+// Crear invitacion manual
 export async function createInvitation(formData: FormData) {
   const db = createAdminClient()
 
@@ -53,6 +50,18 @@ export async function createInvitation(formData: FormData) {
   const notes = ((formData.get('inv_notes') as string) ?? '').trim()
 
   if (!name || !email) return
+
+  // Verificar que el correo no tenga ya un acceso
+  const { data: existing } = await db
+    .from('wellness_access')
+    .select('id')
+    .eq('user_email', email)
+    .limit(1)
+    .maybeSingle()
+
+  if (existing) {
+    redirect('/admin/wellness?inv_error=' + encodeURIComponent('El correo ' + email + ' ya tiene un acceso Wellness registrado.'))
+  }
 
   const code = generateCode()
 

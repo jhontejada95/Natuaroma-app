@@ -1,6 +1,5 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 
@@ -13,10 +12,9 @@ export async function activateWellnessCode(formData: FormData) {
   }
 
   const adminDb = createAdminClient()
-
   const { data: access, error } = await adminDb
     .from('wellness_access')
-    .select('id, activated_at, expires_at, user_email, user_id, status')
+    .select('id, activated_at, expires_at, user_email, status')
     .eq('code', code)
     .single()
 
@@ -25,11 +23,11 @@ export async function activateWellnessCode(formData: FormData) {
   }
 
   if (access.status === 'pending') {
-    redirect('/wellness/activar?error=Tu solicitud esta pendiente de aprobacion.')
+    redirect('/wellness/activar?error=Tu solicitud esta pendiente de aprobacion. Recibiras un correo cuando sea aprobada.')
   }
 
   if (access.activated_at) {
-    redirect('/wellness/activar?error=Este codigo ya fue utilizado')
+    redirect('/wellness/activar?error=Este codigo ya fue utilizado. Ingresa con tu cuenta.')
   }
 
   if (access.expires_at && new Date(access.expires_at) < new Date()) {
@@ -37,29 +35,8 @@ export async function activateWellnessCode(formData: FormData) {
   }
 
   if (access.user_email && access.user_email.toLowerCase() !== email) {
-    redirect('/wellness/activar?error=El correo no coincide con el registrado')
+    redirect('/wellness/activar?error=El correo no coincide con el registrado para este codigo')
   }
 
-  const supabase = await createClient()
-  const { error: authError } = await supabase.auth.signInWithOtp({
-    email,
-    options: {
-      emailRedirectTo: process.env.NEXT_PUBLIC_SITE_URL + '/wellness/activar/callback?code=' + code,
-      shouldCreateUser: true,
-    },
-  })
-
-  if (authError) {
-    console.error('[activar] Auth error:', authError)
-    redirect('/wellness/activar?error=No se pudo enviar el correo de activacion')
-  }
-
-  if (!access.user_email) {
-    await adminDb
-      .from('wellness_access')
-      .update({ user_email: email })
-      .eq('id', access.id)
-  }
-
-  redirect('/wellness/activar?success=1')
+  redirect('/wellness/activar/setup?code=' + encodeURIComponent(code) + '&email=' + encodeURIComponent(email))
 }

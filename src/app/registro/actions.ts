@@ -8,13 +8,13 @@ async function sendTelegramNotification(message: string) {
   const chatId = process.env.TELEGRAM_CHAT_ID
   if (!token || !chatId) return
   try {
-    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    await fetch('https://api.telegram.org/bot' + token + '/sendMessage', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'HTML' }),
     })
   } catch (err) {
-    console.error('[telegram] Error enviando notificacion:', err)
+    console.error('[telegram] Error:', err)
   }
 }
 
@@ -27,9 +27,21 @@ export async function submitPhysicalRegistration(formData: FormData) {
     redirect('/registro?error=Completa todos los campos y selecciona al menos un producto.')
   }
 
-  const code = 'NAT-' + Math.random().toString(36).substring(2, 8).toUpperCase()
-
   const db = createAdminClient()
+
+  // Validar que el correo no tenga ya un acceso Wellness
+  const { data: existing } = await db
+    .from('wellness_access')
+    .select('id')
+    .eq('user_email', email)
+    .limit(1)
+    .maybeSingle()
+
+  if (existing) {
+    redirect('/registro?error=Este correo ya tiene un acceso Wellness registrado. Revisa tu bandeja de entrada o ingresa en la app.')
+  }
+
+  const code = 'NAT-' + Math.random().toString(36).substring(2, 8).toUpperCase()
 
   const { error } = await db.from('wellness_access').insert({
     code,
@@ -42,8 +54,8 @@ export async function submitPhysicalRegistration(formData: FormData) {
   })
 
   if (error) {
-    console.error('[registro] Error creando solicitud:', error)
-    redirect('/registro?error=Ocurrio un error al guardar. Intenta de nuevo.')
+    console.error('[registro] Error:', error)
+    redirect('/registro?error=Ocurrio un error. Intenta de nuevo.')
   }
 
   const msg =
