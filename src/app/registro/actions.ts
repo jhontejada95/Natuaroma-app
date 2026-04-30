@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 
 async function sendTelegramNotification(message: string) {
@@ -19,9 +19,6 @@ async function sendTelegramNotification(message: string) {
 }
 
 export async function submitPhysicalRegistration(formData: FormData) {
-  const supabase = await createClient()
-  const db = supabase as any
-
   const name = (formData.get('name') as string).trim()
   const email = (formData.get('email') as string).toLowerCase().trim()
   const productsRaw = formData.getAll('products') as string[]
@@ -31,6 +28,9 @@ export async function submitPhysicalRegistration(formData: FormData) {
   }
 
   const code = 'NAT-' + Math.random().toString(36).substring(2, 8).toUpperCase()
+
+  // Usar cliente admin para bypass de RLS (inserción anónima desde tienda física)
+  const db = createAdminClient()
 
   const { error } = await db.from('wellness_access').insert({
     code,
@@ -44,7 +44,7 @@ export async function submitPhysicalRegistration(formData: FormData) {
 
   if (error) {
     console.error('[registro] Error creando solicitud:', error)
-    redirect('/registro?error=Ocurrió un error. Intenta de nuevo.')
+    redirect('/registro?error=Ocurrió un error al guardar. Intenta de nuevo.')
   }
 
   await sendTelegramNotification(

@@ -74,7 +74,7 @@ export default async function WellnessActivarPage({
               name="code"
               required
               defaultValue={params?.code ?? ''}
-              placeholder="WELLNESS-XXXXXX"
+              placeholder="NAT-XXXXXX"
               className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-surface placeholder:text-surface/30 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-colors font-mono text-lg text-center uppercase tracking-widest"
             />
           </div>

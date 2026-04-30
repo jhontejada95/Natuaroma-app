@@ -99,9 +99,7 @@ function wellnessCodeHtml(params: { customerName: string; code: string; activati
 
     <!-- Header -->
     <div style="padding:56px 40px 40px;text-align:center;">
-      <div style="width:72px;height:72px;background:rgba(225,195,133,0.15);border-radius:50%;margin:0 auto 24px;display:flex;align-items:center;justify-content:center;">
-        <span style="font-size:32px;">🌿</span>
-      </div>
+      <div style="width:72px;height:72px;background:rgba(225,195,133,0.15);border-radius:50%;margin:0 auto 24px;line-height:72px;font-size:32px;">🌿</div>
       <p style="color:#e1c385;font-size:11px;letter-spacing:4px;text-transform:uppercase;margin:0 0 12px;">Natuaroma Wellness</p>
       <h1 style="color:#ffffff;font-family:'Georgia',serif;font-size:34px;font-weight:400;margin:0;font-style:italic;line-height:1.2;">Tu Santuario<br>Digital te espera</h1>
     </div>
@@ -114,7 +112,7 @@ function wellnessCodeHtml(params: { customerName: string; code: string; activati
       <!-- Code -->
       <div style="background:#223426;border-radius:16px;padding:28px;text-align:center;margin-bottom:28px;">
         <p style="color:#e1c385;font-size:11px;letter-spacing:4px;text-transform:uppercase;margin:0 0 12px;">Tu Código Early Access</p>
-        <p style="color:#ffffff;font-family:'Georgia',serif;font-size:32px;letter-spacing:8px;font-weight:600;margin:0;">${code}</p>
+        <p style="color:#ffffff;font-family:'Courier New',monospace;font-size:28px;letter-spacing:4px;font-weight:700;margin:0;word-break:break-all;line-height:1.3;">${code}</p>
       </div>
 
       <!-- CTA -->
