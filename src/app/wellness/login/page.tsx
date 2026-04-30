@@ -6,7 +6,7 @@ import { WellnessPasswordLogin } from '@/components/wellness/WellnessPasswordLog
 export default async function WellnessLoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; error?: string }>
+  searchParams: Promise<{ next?: string; error?: string; email?: string; welcome?: string }>
 }) {
   const params = await searchParams
   const supabase = await createClient()
@@ -31,7 +31,11 @@ export default async function WellnessLoginPage({
           </div>
         )}
 
-        <WellnessPasswordLogin next={params?.next ?? '/wellness'} />
+        <WellnessPasswordLogin
+          next={params?.next ?? '/wellness'}
+          email={params?.email ?? ''}
+          welcome={params?.welcome === '1'}
+        />
 
         <div className="text-center space-y-2">
           <p className="text-surface/40 text-sm">No tienes acceso aun?</p>

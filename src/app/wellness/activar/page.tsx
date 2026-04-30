@@ -1,12 +1,13 @@
 import { Leaf, Gift, ArrowRight } from 'lucide-react'
 import { activateWellnessCode } from './actions'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 
 export default async function WellnessActivarPage({
   searchParams,
 }: {
-  searchParams: Promise<{ code?: string; error?: string; success?: string }>
+  searchParams: Promise<{ code?: string; error?: string }>
 }) {
   const params = await searchParams
   const supabase = await createClient()
@@ -14,34 +15,14 @@ export default async function WellnessActivarPage({
 
   // Si ya tiene acceso activo, redirigir al portal
   if (user) {
-    const db = supabase as any
-    const { data: existing } = await db
+    const adminDb = createAdminClient()
+    const { data: existing } = await adminDb
       .from('wellness_access')
       .select('id')
       .eq('user_id', user.id)
       .not('activated_at', 'is', null)
       .maybeSingle()
     if (existing) redirect('/wellness')
-  }
-
-  if (params?.success) {
-    return (
-      <div className="min-h-screen bg-primary flex items-center justify-center px-6">
-        <div className="max-w-md w-full text-center space-y-6">
-          <div className="w-20 h-20 bg-accent/20 rounded-full flex items-center justify-center mx-auto">
-            <Leaf size={40} className="text-accent" />
-          </div>
-          <h1 className="text-3xl font-display font-bold text-surface">Acceso Activado</h1>
-          <p className="text-surface/60">Tu cuenta Wellness esta lista. Revisa tu correo para entrar.</p>
-          <a
-            href="/wellness/login"
-            className="inline-flex items-center gap-2 bg-accent text-primary font-semibold px-8 py-3 rounded-xl hover:bg-accent/90 transition-colors"
-          >
-            Ir al portal <ArrowRight size={16} />
-          </a>
-        </div>
-      </div>
-    )
   }
 
   return (
@@ -51,9 +32,14 @@ export default async function WellnessActivarPage({
           <div className="w-16 h-16 bg-accent/20 rounded-full flex items-center justify-center mx-auto">
             <Gift size={32} className="text-accent" />
           </div>
+          <div className="inline-flex items-center gap-2 text-surface/40 text-xs uppercase tracking-widest">
+            <span className="w-4 h-px bg-surface/20" />
+            Paso 1 de 2
+            <span className="w-4 h-px bg-surface/20" />
+          </div>
           <h1 className="text-3xl font-display font-bold text-surface">Activa tu Acceso</h1>
           <p className="text-surface/60 text-sm">
-            Ingresa el codigo Early Access que recibiste en tu correo despues de comprar
+            Ingresa el codigo Early Access que recibiste en tu correo
           </p>
         </div>
 
@@ -95,7 +81,7 @@ export default async function WellnessActivarPage({
             type="submit"
             className="w-full bg-accent text-primary font-semibold py-3 px-6 rounded-xl hover:bg-accent/90 transition-colors"
           >
-            Activar Acceso Wellness
+            Continuar
           </button>
         </form>
 
@@ -106,7 +92,7 @@ export default async function WellnessActivarPage({
           </a>
           <br />
           <a href="/tienda" className="text-surface/40 text-xs hover:text-surface/60">
-            Comprar para obtener acceso
+            Volver a la tienda
           </a>
         </div>
       </div>

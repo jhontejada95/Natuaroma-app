@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { Leaf, BookOpen, Sparkles, LayoutDashboard, LogOut } from 'lucide-react'
@@ -14,12 +15,12 @@ export default async function WellnessLayout({ children }: { children: React.Rea
   }
 
   const supabase = await createClient()
-  const db = supabase as any
-
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/wellness/login')
 
-  const { data: access } = await db
+  // Usar admin client para verificar acceso sin restricciones de RLS
+  const adminDb = createAdminClient()
+  const { data: access } = await adminDb
     .from('wellness_access')
     .select('id, activated_at, expires_at, code')
     .eq('user_id', user.id)
