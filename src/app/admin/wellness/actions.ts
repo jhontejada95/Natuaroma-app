@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { sendWellnessCode } from '@/lib/email'
 
@@ -8,34 +8,32 @@ function generateCode() {
   return 'NAT-' + Math.random().toString(36).substring(2, 8).toUpperCase()
 }
 
-// Generar código suelto (legacy)
-export async function generateWellnessCode() {
-  const supabase = await createClient()
-  const db = supabase as any
-  await db.from('wellness_access').insert({
-    code: generateCode(),
-    user_email: null,
-    order_id: null,
-    source: 'invitation',
-    status: 'active',
-  })
-  revalidatePath('/admin/wellness')
-}
-
 // Aprobar solicitud física → activar + enviar email
 export async function approvePhysicalRequest(id: string) {
-  const supabase = await createClient()
-  const db = supabase as any
+  const db = createAdminClient()
 
+  // Leer el registro (admin client bypasa RLS)
   const { data: request } = await db
     .from('wellness_access')
-    .select('user_email, requester_name, code')
+    .select('user_email, requester_name, code, status')
     .eq('id', id)
     .single()
 
-  if (!request) return
+  if (!request) {
+    console.error('[wellness] approvePhysicalRequest: registro no encontrado', id)
+    return
+  }
 
-  await db.from('wellness_access').update({ status: 'active' }).eq('id', id)
+  // Evitar doble aprobación
+  if (request.status === 'active') {
+    revalidatePath('/admin/wellness')
+    return
+  }
+
+  await db
+    .from('wellness_access')
+    .update({ status: 'active' })
+    .eq('id', id)
 
   await sendWellnessCode({
     to: request.user_email,
@@ -48,18 +46,17 @@ export async function approvePhysicalRequest(id: string) {
 
 // Crear invitación manual desde admin
 export async function createInvitation(formData: FormData) {
-  const supabase = await createClient()
-  const db = supabase as any
+  const db = createAdminClient()
 
   const name = (formData.get('inv_name') as string).trim()
   const email = (formData.get('inv_email') as string).toLowerCase().trim()
-  const notes = (formData.get('inv_notes') as string ?? '').trim()
+  const notes = ((formData.get('inv_notes') as string) ?? '').trim()
 
   if (!name || !email) return
 
   const code = generateCode()
 
-  await db.from('wellness_access').insert({
+  const { error } = await db.from('wellness_access').insert({
     code,
     user_email: email,
     requester_name: name,
@@ -68,6 +65,11 @@ export async function createInvitation(formData: FormData) {
     notes: notes || null,
     order_id: null,
   })
+
+  if (error) {
+    console.error('[wellness] createInvitation error:', error)
+    return
+  }
 
   await sendWellnessCode({ to: email, customerName: name, code })
 

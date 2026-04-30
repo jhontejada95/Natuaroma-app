@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 
 export async function activateWellnessCode(formData: FormData) {
@@ -11,11 +12,11 @@ export async function activateWellnessCode(formData: FormData) {
     redirect('/wellness/activar?error=Completa todos los campos')
   }
 
-  const supabase = await createClient()
-  const db = supabase as any
+  // Admin client para buscar el código sin restricciones de RLS
+  // (el usuario aún no está autenticado en este punto)
+  const adminDb = createAdminClient()
 
-  // Buscar el código
-  const { data: access, error } = await db
+  const { data: access, error } = await adminDb
     .from('wellness_access')
     .select('id, activated_at, expires_at, user_email, user_id, status')
     .eq('code', code)
@@ -25,7 +26,7 @@ export async function activateWellnessCode(formData: FormData) {
     redirect('/wellness/activar?error=Código no válido o no existe')
   }
 
-  // Si el registro físico aún está pendiente de aprobación
+  // Solicitud física aún pendiente de aprobación
   if (access.status === 'pending') {
     redirect('/wellness/activar?error=Tu solicitud aún está pendiente de aprobación. Recibirás un correo cuando sea aprobada.')
   }
@@ -38,12 +39,13 @@ export async function activateWellnessCode(formData: FormData) {
     redirect('/wellness/activar?error=Este código ha expirado')
   }
 
-  // El email debe coincidir con el registrado (si existe)
+  // El email debe coincidir si el registro ya tiene uno
   if (access.user_email && access.user_email.toLowerCase() !== email) {
     redirect('/wellness/activar?error=El correo no coincide con el registrado para este código')
   }
 
-  // Enviar magic link para autenticar y activar
+  // Enviar magic link para autenticar al usuario y completar activación
+  const supabase = await createClient()
   const { error: authError } = await supabase.auth.signInWithOtp({
     email,
     options: {
@@ -53,13 +55,13 @@ export async function activateWellnessCode(formData: FormData) {
   })
 
   if (authError) {
-    console.error('Auth error:', authError)
+    console.error('[activar] Auth error:', authError)
     redirect('/wellness/activar?error=No se pudo enviar el correo de activación')
   }
 
-  // Guardar email si no tenía (código sin email previo)
+  // Si el código no tenía email asignado, guardarlo ahora
   if (!access.user_email) {
-    await db
+    await adminDb
       .from('wellness_access')
       .update({ user_email: email })
       .eq('id', access.id)
