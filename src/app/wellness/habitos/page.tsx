@@ -1,21 +1,22 @@
 import { createAdminClient } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
 import { Flame, CheckCircle, Plus } from 'lucide-react'
 import { toggleHabit } from './actions'
 
 const HABITS = [
-  { name: 'Respiracion consciente', desc: '5 min de respiracion profunda con aceite esencial', emoji: '🌬' },
-  { name: 'Aromaterapia manana', desc: 'Difusor encendido al despertar', emoji: '🌿' },
-  { name: 'Hidratacion', desc: '8 vasos de agua al dia', emoji: '💧' },
-  { name: 'Momento de calma', desc: '10 min sin pantallas con vela aromatica', emoji: '🕯' },
-  { name: 'Gratitud', desc: 'Escribe 3 cosas por las que eres agradecido', emoji: '✨' },
-  { name: 'Movimiento', desc: '20 min de actividad fisica suave', emoji: '🍃' },
+  { name: 'Respiracion consciente', desc: '5 min de respiracion profunda con aceite esencial', emoji: '\U0001f32c' },
+  { name: 'Aromaterapia manana', desc: 'Difusor encendido al despertar', emoji: '\U0001f33f' },
+  { name: 'Hidratacion', desc: '8 vasos de agua al dia', emoji: '\U0001f4a7' },
+  { name: 'Momento de calma', desc: '10 min sin pantallas con vela aromatica', emoji: '\U0001f56f' },
+  { name: 'Gratitud', desc: 'Escribe 3 cosas por las que eres agradecido', emoji: '\u2728' },
+  { name: 'Movimiento', desc: '20 min de actividad fisica suave', emoji: '\U0001f343' },
 ]
 
 export default async function HabitosPage() {
-  const supabase = createAdminClient()
-  const db = supabase
-
+  // createClient para sesion, adminClient para DB
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  const db = createAdminClient()
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -28,7 +29,6 @@ export default async function HabitosPage() {
 
   const todaySet = new Set((todayHabits ?? []).map((h: any) => h.habit_name))
 
-  // Historial ultimos 7 dias para el calendario
   const sevenDaysAgo = new Date(today)
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6)
 
@@ -38,7 +38,6 @@ export default async function HabitosPage() {
     .eq('user_id', user!.id)
     .gte('completed_at', sevenDaysAgo.toISOString())
 
-  // Dias con al menos 1 habito completado
   const activeDays = new Set(
     (weekHabits ?? []).map((h: any) => new Date(h.completed_at).toDateString())
   )
@@ -77,7 +76,6 @@ export default async function HabitosPage() {
             </svg>
           </div>
         </div>
-        {/* Semana */}
         <div className="flex gap-2">
           {weekDays.map((day) => {
             const isActive = activeDays.has(day.toDateString())
@@ -126,12 +124,8 @@ export default async function HabitosPage() {
                   </p>
                   <p className="text-xs text-foreground/50 mt-0.5 truncate">{habit.desc}</p>
                 </div>
-                {!done && (
-                  <Plus size={18} className="text-foreground/30 flex-shrink-0" />
-                )}
-                {done && (
-                  <span className="text-xs font-semibold text-primary/60 flex-shrink-0">Listo</span>
-                )}
+                {!done && <Plus size={18} className="text-foreground/30 flex-shrink-0" />}
+                {done && <span className="text-xs font-semibold text-primary/60 flex-shrink-0">Listo</span>}
               </button>
             </form>
           )

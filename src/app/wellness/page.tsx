@@ -1,12 +1,15 @@
 import { createAdminClient } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
 import { BookOpen, Sparkles, Flame, Play, CheckCircle, ArrowRight, Leaf } from 'lucide-react'
 import { WellnessPWABanner } from '@/components/wellness/WellnessPWABanner'
 
 export default async function WellnessDashboardPage() {
-  const supabase = createAdminClient()
-  const db = supabase
-
+  // createClient para leer la sesion del usuario (requiere cookies)
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+
+  // createAdminClient para queries de DB (bypasea RLS)
+  const db = createAdminClient()
 
   // Obtener acceso
   const { data: access } = await db
@@ -115,7 +118,7 @@ export default async function WellnessDashboardPage() {
                   (done ? 'bg-primary text-surface' : 'bg-surface-dim text-foreground/30')}>
                   <CheckCircle size={18} />
                 </div>
-                <span className={'font-medium text-sm ' + (done ? 'text-primary' : 'text-foreground/70 line-through-' + (done ? 'none' : ''))}>
+                <span className={'font-medium text-sm ' + (done ? 'text-primary' : 'text-foreground/70')}>
                   {habit}
                 </span>
                 {done && <span className="ml-auto text-xs text-primary/60 font-medium">Listo</span>}

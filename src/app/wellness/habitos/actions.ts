@@ -1,17 +1,19 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
 export async function toggleHabit(habitName: string, markDone: boolean) {
-  const supabase = createAdminClient()
-  const db = supabase
-
+  // createClient para obtener la sesion del usuario
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return
 
+  // adminClient para las escrituras en DB
+  const db = createAdminClient()
+
   if (markDone) {
-    // Calcular racha actual
     const yesterday = new Date()
     yesterday.setDate(yesterday.getDate() - 1)
     yesterday.setHours(0, 0, 0, 0)
@@ -35,7 +37,6 @@ export async function toggleHabit(habitName: string, markDone: boolean) {
       streak_count: streak,
     })
   } else {
-    // Desmarcar (eliminar el de hoy)
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     await db
