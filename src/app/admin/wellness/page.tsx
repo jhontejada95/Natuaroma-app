@@ -1,10 +1,10 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { Leaf, CheckCircle, Clock, XCircle, Users, Key, BookOpen, UserPlus, Store, Send } from 'lucide-react'
 import { generateWellnessCode, approvePhysicalRequest, createInvitation } from './actions'
 
 export default async function AdminWellnessPage() {
-  const supabase = await createClient()
-  const db = supabase as any
+  // Usar admin client para ver TODOS los registros sin restricciones de RLS
+  const db = createAdminClient()
 
   const { data: codes } = await db
     .from('wellness_access')

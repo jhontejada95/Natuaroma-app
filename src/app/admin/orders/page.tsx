@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from "@/lib/supabase/admin"
 import { Package, Clock, CheckCircle, XCircle, TruckIcon } from 'lucide-react'
 import { updateOrderStatus } from './actions'
 
@@ -23,7 +23,7 @@ export default async function AdminOrdersPage({
   searchParams: Promise<{ status?: string; payment?: string }>
 }) {
   const params = await searchParams
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   let query = supabase
     .from('orders')

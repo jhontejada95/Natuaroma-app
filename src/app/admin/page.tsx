@@ -1,8 +1,8 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from "@/lib/supabase/admin"
 import { ShoppingCart, Package, Leaf, TrendingUp, Clock, CheckCircle, AlertCircle } from 'lucide-react'
 
 export default async function AdminDashboard() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const db = supabase as any
 
   // Datos en paralelo

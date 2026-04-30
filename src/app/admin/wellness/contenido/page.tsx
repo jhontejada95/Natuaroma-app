@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from "@/lib/supabase/admin"
 import { BookOpen, Eye, EyeOff, Plus } from 'lucide-react'
 import { toggleContentPublished, createWellnessContent } from './actions'
 
@@ -11,7 +11,7 @@ const TYPE_LABELS: Record<string, string> = {
 }
 
 export default async function WellnessContenidoPage() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const db = supabase as any
 
   const { data: content } = await db

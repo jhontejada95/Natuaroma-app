@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from "@/lib/supabase/admin"
 import { notFound } from 'next/navigation'
 import { ArrowLeft, Package, MapPin, Mail, Phone, CreditCard } from 'lucide-react'
 import { updateOrderStatus } from '../actions'
@@ -15,7 +15,7 @@ export default async function AdminOrderDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const db = supabase as any
 
   const [{ data: order }, { data: items }] = await Promise.all([
