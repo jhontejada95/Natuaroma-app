@@ -17,6 +17,8 @@ export async function createOrder(formData: FormData) {
   const telefono = formData.get('telefono') as string
   const direccion = formData.get('direccion') as string
   const ciudad = formData.get('ciudad') as string
+  const departamento = formData.get('departamento') as string
+  const shipping_cost = parseInt(formData.get('shipping_cost') as string ?? '0', 10)
 
   const cartItemsRaw = formData.get('cartItems') as string
   const cartItems: { id: string; name: string; quantity: number }[] = JSON.parse(cartItemsRaw)
@@ -51,9 +53,8 @@ export async function createOrder(formData: FormData) {
     const p = productMap.get(item.id)!
     return acc + p.price * item.quantity
   }, 0)
-  const shipping_cost = 0
-  const total = subtotal + shipping_cost
 
+  const total = subtotal + shipping_cost
   const order_number = 'NAT-' + Math.floor(10000 + Math.random() * 90000)
 
   const { data: order, error: orderError } = await supabase
@@ -61,7 +62,7 @@ export async function createOrder(formData: FormData) {
     .insert({
       order_number,
       customer_email: email,
-      shipping_address: { nombre_completo, cedula, telefono, direccion, ciudad },
+      shipping_address: { nombre_completo, cedula, telefono, direccion, ciudad, departamento },
       subtotal,
       shipping_cost,
       total,
@@ -110,7 +111,7 @@ export async function createOrder(formData: FormData) {
         customerName,
         items,
         total,
-        address: nombre_completo + ' - ' + direccion + ', ' + ciudad,
+        address: nombre_completo + ' - ' + direccion + ', ' + ciudad + ', ' + departamento,
       }),
       sendWellnessCode({ to: email, customerName, code: wellnessCode }),
     ])
@@ -118,10 +119,11 @@ export async function createOrder(formData: FormData) {
     redirect('/checkout/success?order=' + order_number + '&status=approved')
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.natuaroma.shop'
   const mpClient = new MercadoPagoConfig({ accessToken: MP_ACCESS_TOKEN })
   const preferenceClient = new Preference(mpClient)
 
+  // Items de productos
   const mpItems = cartItems.map((item) => {
     const p = productMap.get(item.id)!
     return {
@@ -132,6 +134,17 @@ export async function createOrder(formData: FormData) {
       currency_id: 'COP',
     }
   })
+
+  // Agregar envío como item separado en Mercado Pago
+  if (shipping_cost > 0) {
+    mpItems.push({
+      id: 'envio',
+      title: `Envío a ${departamento}`,
+      quantity: 1,
+      unit_price: shipping_cost,
+      currency_id: 'COP',
+    })
+  }
 
   const { id: preferenceId } = await preferenceClient.create({
     body: {
