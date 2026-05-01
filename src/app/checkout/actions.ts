@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { MercadoPagoConfig, Preference } from 'mercadopago'
 import { sendOrderConfirmation, sendWellnessCode } from '@/lib/email'
+import { DEPARTMENTS, getShippingCost } from '@/lib/shipping'
 
 const MP_ACCESS_TOKEN = process.env.MERCADO_PAGO_ACCESS_TOKEN ?? ''
 
@@ -27,7 +28,16 @@ export async function createOrder(formData: FormData) {
   const direccion = (formData.get('direccion') as string).trim()
   const ciudad = (formData.get('ciudad') as string).trim()
   const departamento = (formData.get('departamento') as string).trim()
-  const shipping_cost = parseInt(formData.get('shipping_cost') as string ?? '0', 10)
+
+  const selectedDepartment = DEPARTMENTS.find((dept) => dept.name === departamento)
+  if (!selectedDepartment) {
+    redirect('/checkout?error=Selecciona un departamento valido')
+  }
+
+  const { zone, cost: shipping_cost } = getShippingCost(departamento)
+  if (zone === 'no_coverage') {
+    redirect('/checkout?error=Aun no tenemos cobertura para este departamento. Escribenos por WhatsApp para ayudarte.')
+  }
 
   // ── C-03: Parsear y validar cartItems con try-catch ──────────────────
   const cartItemsRaw = formData.get('cartItems') as string
@@ -142,7 +152,7 @@ export async function createOrder(formData: FormData) {
           source: 'purchase',
           status: 'active',
         })
-      } catch (_) { /* no bloquear si falla */ }
+      } catch { /* no bloquear si falla */ }
     }
 
     const customerName = nombre_completo.split(' ')[0]

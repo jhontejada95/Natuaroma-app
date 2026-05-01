@@ -42,15 +42,19 @@ export async function setupWellnessAccount(formData: FormData) {
 
   const adminDb = createAdminClient()
 
-  // Verificar que el codigo es valido y no ha sido activado
+  // Verificar que el codigo es valido, pertenece al email registrado y no expiro.
   const { data: access } = await adminDb
     .from('wellness_access')
-    .select('id, activated_at, status')
+    .select('id, activated_at, expires_at, status, user_email')
     .eq('code', code)
     .single()
 
-  if (!access || access.status === 'pending') {
+  if (!access || access.status === 'pending' || access.user_email.toLowerCase() !== email) {
     redirect('/wellness/activar?error=Codigo no valido o no aprobado')
+  }
+
+  if (access.expires_at && new Date(access.expires_at) < new Date()) {
+    redirect('/wellness/activar?error=Este codigo ha expirado')
   }
 
   // Si ya fue activado, ir directo al login (idempotente — evita doble procesamiento)

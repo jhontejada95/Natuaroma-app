@@ -22,9 +22,10 @@ export async function createWellnessContent(formData: FormData) {
   const slug = formData.get('slug') as string
   const type = formData.get('type') as string
   const description = formData.get('description') as string || null
-  const body = formData.get('body') as string || null
-  const youtube_url = formData.get('youtube_url') as string || null
-  const audio_url = formData.get('audio_url') as string || null
+  const content_body = formData.get('body') as string || null
+  const youtube_url = ((formData.get('youtube_url') as string) || '').trim()
+  const audio_url = ((formData.get('audio_url') as string) || '').trim()
+  const media_url = youtube_url || audio_url || null
   const category = formData.get('category') as string || null
   const duration_minutes = formData.get('duration_minutes') ? Number(formData.get('duration_minutes')) : null
   const sort_order = formData.get('sort_order') ? Number(formData.get('sort_order')) : 99
@@ -35,9 +36,8 @@ export async function createWellnessContent(formData: FormData) {
     slug,
     type,
     description,
-    body,
-    youtube_url,
-    audio_url,
+    content_body,
+    media_url,
     category,
     duration_minutes,
     sort_order,
