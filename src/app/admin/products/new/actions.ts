@@ -1,10 +1,13 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
 export async function createProduct(formData: FormData) {
+  await requireAdmin()
+
   const supabase = createAdminClient()
 
   const name = formData.get('name') as string

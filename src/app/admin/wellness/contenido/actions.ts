@@ -1,19 +1,22 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { revalidatePath } from 'next/cache'
 
 export async function toggleContentPublished(contentId: string, newValue: boolean) {
-  const supabase = createAdminClient()
-  const db = supabase
+  await requireAdmin()
+
+  const db = createAdminClient()
   await db.from('wellness_content').update({ is_published: newValue }).eq('id', contentId)
   revalidatePath('/admin/wellness/contenido')
   revalidatePath('/wellness/biblioteca')
 }
 
 export async function createWellnessContent(formData: FormData) {
-  const supabase = createAdminClient()
-  const db = supabase
+  await requireAdmin()
+
+  const db = createAdminClient()
 
   const title = formData.get('title') as string
   const slug = formData.get('slug') as string

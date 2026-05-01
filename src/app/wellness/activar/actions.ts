@@ -1,9 +1,18 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { isRateLimited } from '@/lib/ratelimit'
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 
 export async function activateWellnessCode(formData: FormData) {
+  // A-01: Rate limiting — evita fuerza bruta de códigos
+  const headersList = await headers()
+  const ip = headersList.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'anonymous'
+  if (await isRateLimited('activar', ip)) {
+    redirect('/wellness/activar?error=Demasiados intentos. Espera un momento.')
+  }
+
   const code = (formData.get('code') as string).trim().toUpperCase()
   const email = (formData.get('email') as string).trim().toLowerCase()
 

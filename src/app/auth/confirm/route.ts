@@ -27,8 +27,10 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // Falló — redirigir al login con error
-  const loginUrl = new URL('/admin/login', request.url)
+  // Falló — redirigir al login correspondiente con error
+  const isWellness = next.startsWith('/wellness')
+  const loginPath = isWellness ? '/wellness/login' : '/admin/login'
+  const loginUrl = new URL(loginPath, request.url)
   loginUrl.searchParams.set('error', 'Enlace inválido o expirado. Solicita uno nuevo.')
   return NextResponse.redirect(loginUrl)
 }

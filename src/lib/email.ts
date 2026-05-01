@@ -1,4 +1,5 @@
 import { Resend } from 'resend'
+import { log, logError } from '@/lib/logger'
 
 const resend = new Resend(process.env.RESEND_API_KEY ?? '')
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL ?? 'Natuaroma <hola@natuaroma.shop>'
@@ -150,7 +151,7 @@ export async function sendOrderConfirmation(params: {
   address: string
 }) {
   if (!process.env.RESEND_API_KEY) {
-    console.log('[email] RESEND_API_KEY no configurado, omitiendo email de confirmación')
+    log('[email] RESEND_API_KEY no configurado, omitiendo email de confirmación')
     return
   }
   try {
@@ -160,9 +161,9 @@ export async function sendOrderConfirmation(params: {
       subject: `✅ Orden ${params.orderNumber} confirmada — Natuaroma`,
       html: orderConfirmationHtml(params),
     })
-    console.log('[email] Confirmación enviada a', params.to)
+    log('[email] Confirmación de orden enviada')
   } catch (err) {
-    console.error('[email] Error enviando confirmación:', err)
+    logError('[email] Error enviando confirmación de orden', err)
   }
 }
 
@@ -172,7 +173,7 @@ export async function sendWellnessCode(params: {
   code: string
 }) {
   if (!process.env.RESEND_API_KEY) {
-    console.log('[email] RESEND_API_KEY no configurado, omitiendo email wellness')
+    log('[email] RESEND_API_KEY no configurado, omitiendo email wellness')
     return
   }
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://natuaroma-app.vercel.app'
@@ -184,8 +185,8 @@ export async function sendWellnessCode(params: {
       subject: `🌿 Tu acceso Wellness Natuaroma está listo — ${params.code}`,
       html: wellnessCodeHtml({ ...params, activationUrl }),
     })
-    console.log('[email] Código wellness enviado a', params.to)
+    log('[email] Código wellness enviado')
   } catch (err) {
-    console.error('[email] Error enviando código wellness:', err)
+    logError('[email] Error enviando código wellness', err)
   }
 }

@@ -6,7 +6,7 @@ import { WellnessPasswordLogin } from '@/components/wellness/WellnessPasswordLog
 export default async function WellnessLoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; error?: string; email?: string; welcome?: string }>
+  searchParams: Promise<{ next?: string; error?: string; email?: string; welcome?: string; message?: string }>
 }) {
   const params = await searchParams
   const supabase = await createClient()
@@ -31,6 +31,12 @@ export default async function WellnessLoginPage({
           </div>
         )}
 
+        {params?.message && (
+          <div className="bg-accent/15 text-surface border border-accent/30 rounded-xl p-4 text-sm text-center">
+            {params.message}
+          </div>
+        )}
+
         <WellnessPasswordLogin
           next={params?.next ?? '/wellness'}
           email={params?.email ?? ''}
@@ -41,6 +47,10 @@ export default async function WellnessLoginPage({
           <p className="text-surface/40 text-sm">No tienes acceso aun?</p>
           <a href="/wellness/activar" className="text-accent text-sm font-medium hover:underline">
             Activar con codigo Early Access &rarr;
+          </a>
+          <br />
+          <a href="/wellness/forgot-password" className="text-surface/40 text-xs hover:text-surface/60 transition-colors">
+            Olvidé mi contraseña
           </a>
           <br />
           <a href="/tienda" className="text-surface/40 text-xs hover:text-surface/60 transition-colors">

@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { Leaf, BookOpen, Sparkles, LayoutDashboard, LogOut } from 'lucide-react'
 
-const PUBLIC_WELLNESS = ['/wellness/login', '/wellness/activar']
+const PUBLIC_WELLNESS = ['/wellness/login', '/wellness/activar', '/wellness/forgot-password', '/wellness/reset-password']
 
 export default async function WellnessLayout({ children }: { children: React.ReactNode }) {
   const headersList = await headers()

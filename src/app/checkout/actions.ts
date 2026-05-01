@@ -1,34 +1,56 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { generateCode } from '@/lib/utils/generateCode'
+import { isRateLimited } from '@/lib/ratelimit'
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import { MercadoPagoConfig, Preference } from 'mercadopago'
 import { sendOrderConfirmation, sendWellnessCode } from '@/lib/email'
 
 const MP_ACCESS_TOKEN = process.env.MERCADO_PAGO_ACCESS_TOKEN ?? ''
 
 export async function createOrder(formData: FormData) {
-  const supabase = createAdminClient()
-  const db = supabase
+  // ── A-01: Rate limiting — máx. 5 intentos/min por IP ────────────────
+  const headersList = await headers()
+  const ip = headersList.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'anonymous'
+  if (await isRateLimited('checkout', ip)) {
+    redirect('/checkout?error=Demasiados intentos. Espera un momento e intenta de nuevo.')
+  }
 
-  const email = formData.get('email') as string
-  const nombre_completo = formData.get('nombre_completo') as string
-  const cedula = formData.get('cedula') as string
-  const telefono = formData.get('telefono') as string
-  const direccion = formData.get('direccion') as string
-  const ciudad = formData.get('ciudad') as string
-  const departamento = formData.get('departamento') as string
+  const db = createAdminClient()
+
+  const email = (formData.get('email') as string).trim().toLowerCase()
+  const nombre_completo = (formData.get('nombre_completo') as string).trim()
+  const cedula = (formData.get('cedula') as string).trim()
+  const telefono = (formData.get('telefono') as string).trim()
+  const direccion = (formData.get('direccion') as string).trim()
+  const ciudad = (formData.get('ciudad') as string).trim()
+  const departamento = (formData.get('departamento') as string).trim()
   const shipping_cost = parseInt(formData.get('shipping_cost') as string ?? '0', 10)
 
+  // ── C-03: Parsear y validar cartItems con try-catch ──────────────────
   const cartItemsRaw = formData.get('cartItems') as string
-  const cartItems: { id: string; name: string; quantity: number }[] = JSON.parse(cartItemsRaw)
+  let cartItems: { id: string; name: string; quantity: number }[]
+  try {
+    const parsed = JSON.parse(cartItemsRaw)
+    if (!Array.isArray(parsed) || parsed.length === 0) throw new Error('empty cart')
+    cartItems = parsed
+  } catch {
+    redirect('/checkout?error=El carrito es inválido, recarga la página')
+  }
 
-  if (!cartItems || cartItems.length === 0) {
-    redirect('/checkout?error=El carrito esta vacio')
+  // ── C-03: Validar que quantity sea un entero positivo ────────────────
+  for (const item of cartItems) {
+    const qty = parseInt(String(item.quantity), 10)
+    if (!qty || qty < 1 || qty > 99) {
+      redirect('/checkout?error=Cantidad inválida en uno de los productos')
+    }
+    item.quantity = qty // sanitizado
   }
 
   const productIds = cartItems.map((i) => i.id)
-  const { data: dbProducts, error: fetchError } = await supabase
+  const { data: dbProducts, error: fetchError } = await db
     .from('products')
     .select('id, name, price, stock, status')
     .in('id', productIds)
@@ -42,7 +64,7 @@ export async function createOrder(formData: FormData) {
   for (const item of cartItems) {
     const p = productMap.get(item.id)
     if (!p || p.status !== 'active') {
-      redirect('/checkout?error=Uno o mas productos no estan disponibles')
+      redirect('/checkout?error=Uno o más productos no están disponibles')
     }
     if (p.stock < item.quantity) {
       redirect('/checkout?error=Stock insuficiente para ' + p.name)
@@ -54,10 +76,15 @@ export async function createOrder(formData: FormData) {
     return acc + p.price * item.quantity
   }, 0)
 
+  // ── C-03: Validar que el total sea positivo ──────────────────────────
+  if (subtotal <= 0) {
+    redirect('/checkout?error=Total inválido')
+  }
+
   const total = subtotal + shipping_cost
   const order_number = 'NAT-' + Math.floor(10000 + Math.random() * 90000)
 
-  const { data: order, error: orderError } = await supabase
+  const { data: order, error: orderError } = await db
     .from('orders')
     .insert({
       order_number,
@@ -73,7 +100,7 @@ export async function createOrder(formData: FormData) {
     .single()
 
   if (orderError || !order) {
-    console.error('Error al crear la orden:', orderError)
+    console.error('[checkout] Error al crear la orden:', orderError)
     redirect('/checkout?error=No se pudo generar la orden')
   }
 
@@ -88,15 +115,16 @@ export async function createOrder(formData: FormData) {
     }
   })
 
-  const { error: itemsError } = await supabase.from('order_items').insert(orderItemsData)
+  const { error: itemsError } = await db.from('order_items').insert(orderItemsData)
   if (itemsError) {
     console.error('[checkout] Error insertando order_items:', itemsError)
-    await supabase.from('orders').update({ notes: 'ERROR:order_items_failed' }).eq('id', order.id)
-    redirect('/checkout?error=Error al registrar los productos. Contactanos con tu numero de orden: ' + order_number)
+    await db.from('orders').update({ notes: 'ERROR:order_items_failed' }).eq('id', order.id)
+    redirect('/checkout?error=Error al registrar los productos. Contáctanos con tu número de orden: ' + order_number)
   }
 
+  // ── Flujo sin MercadoPago (desarrollo / MP_ACCESS_TOKEN vacío) ───────
   if (!MP_ACCESS_TOKEN) {
-    const wellnessCode = 'NAT-' + Math.random().toString(36).substring(2, 8).toUpperCase()
+    const wellnessCode = generateCode()
 
     const { data: existingAccess } = await db
       .from('wellness_access')
@@ -114,7 +142,7 @@ export async function createOrder(formData: FormData) {
           source: 'purchase',
           status: 'active',
         })
-      } catch (_) { /* no bloquear el flujo si falla */ }
+      } catch (_) { /* no bloquear si falla */ }
     }
 
     const customerName = nombre_completo.split(' ')[0]
@@ -123,7 +151,7 @@ export async function createOrder(formData: FormData) {
       return { name: p.name, quantity: item.quantity, price: p.price }
     })
 
-    const emailPromises: Promise<any>[] = [
+    const emailPromises: Promise<unknown>[] = [
       sendOrderConfirmation({
         to: email,
         orderNumber: order_number,
@@ -141,6 +169,7 @@ export async function createOrder(formData: FormData) {
     redirect('/checkout/success?order=' + order_number + '&status=approved')
   }
 
+  // ── Flujo con MercadoPago ────────────────────────────────────────────
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.natuaroma.shop'
   const mpClient = new MercadoPagoConfig({ accessToken: MP_ACCESS_TOKEN })
   const preferenceClient = new Preference(mpClient)
@@ -159,7 +188,7 @@ export async function createOrder(formData: FormData) {
   if (shipping_cost > 0) {
     mpItems.push({
       id: 'envio',
-      title: 'Envio a ' + departamento,
+      title: 'Envío a ' + departamento,
       quantity: 1,
       unit_price: shipping_cost,
       currency_id: 'COP',

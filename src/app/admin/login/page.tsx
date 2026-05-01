@@ -3,7 +3,7 @@ import { signInWithPassword } from './actions'
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ message: string; error: string }>
+  searchParams: Promise<{ message?: string; error?: string }>
 }) {
   const params = await searchParams
 
@@ -56,7 +56,19 @@ export default async function LoginPage({
               {params.error}
             </p>
           )}
+
+          {params?.message && (
+            <p className="mt-4 p-4 bg-primary/10 text-primary text-sm rounded text-center">
+              {params.message}
+            </p>
+          )}
         </form>
+
+        <div className="mt-6 text-center">
+          <a href="/admin/forgot-password" className="text-foreground/40 text-sm hover:text-foreground/60 transition-colors">
+            Olvidé mi contraseña
+          </a>
+        </div>
       </div>
     </div>
   )

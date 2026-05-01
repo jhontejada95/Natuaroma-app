@@ -1,16 +1,16 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { requireAdmin } from '@/lib/auth/requireAdmin'
+import { generateCode } from '@/lib/utils/generateCode'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { sendWellnessCode } from '@/lib/email'
 
-function generateCode() {
-  return 'NAT-' + Math.random().toString(36).substring(2, 8).toUpperCase()
-}
-
 // Aprobar solicitud fisica
 export async function approvePhysicalRequest(id: string) {
+  await requireAdmin()
+
   const db = createAdminClient()
 
   const { data: request } = await db
@@ -43,6 +43,8 @@ export async function approvePhysicalRequest(id: string) {
 
 // Crear invitacion manual
 export async function createInvitation(formData: FormData) {
+  await requireAdmin()
+
   const db = createAdminClient()
 
   const name = (formData.get('inv_name') as string).trim()

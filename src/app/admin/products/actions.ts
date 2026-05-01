@@ -1,10 +1,13 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
 export async function deleteProduct(productId: string) {
+  await requireAdmin()
+
   const supabase = createAdminClient()
   const { error } = await supabase.from('products').delete().eq('id', productId)
   if (error) {
@@ -17,6 +20,8 @@ export async function deleteProduct(productId: string) {
 }
 
 export async function updateProduct(productId: string, formData: FormData) {
+  await requireAdmin()
+
   const supabase = createAdminClient()
 
   const name = formData.get('name') as string

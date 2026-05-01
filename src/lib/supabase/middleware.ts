@@ -26,7 +26,9 @@ export async function updateSession(request: NextRequest) {
   // Proteger /admin
   if (
     request.nextUrl.pathname.startsWith('/admin') &&
-    !request.nextUrl.pathname.startsWith('/admin/login')
+    !request.nextUrl.pathname.startsWith('/admin/login') &&
+    !request.nextUrl.pathname.startsWith('/admin/forgot-password') &&
+    !request.nextUrl.pathname.startsWith('/admin/reset-password')
   ) {
     if (!user) {
       const url = request.nextUrl.clone()
@@ -49,7 +51,9 @@ export async function updateSession(request: NextRequest) {
   if (
     request.nextUrl.pathname.startsWith('/wellness') &&
     !request.nextUrl.pathname.startsWith('/wellness/activar') &&
-    !request.nextUrl.pathname.startsWith('/wellness/login')
+    !request.nextUrl.pathname.startsWith('/wellness/login') &&
+    !request.nextUrl.pathname.startsWith('/wellness/forgot-password') &&
+    !request.nextUrl.pathname.startsWith('/wellness/reset-password')
   ) {
     if (!user) {
       const url = request.nextUrl.clone()

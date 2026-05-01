@@ -1,4 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin'
+import { generateCode } from '@/lib/utils/generateCode'
 import { NextRequest, NextResponse } from 'next/server'
 import { MercadoPagoConfig, Payment } from 'mercadopago'
 import { sendOrderConfirmation, sendWellnessCode } from '@/lib/email'
@@ -9,11 +10,14 @@ const MP_WEBHOOK_SECRET = process.env.MERCADOPAGO_WEBHOOK_SECRET ?? ''
 
 /**
  * Verifica la firma HMAC del webhook de MercadoPago.
- * Solo bloquea si MERCADOPAGO_WEBHOOK_SECRET esta configurado en las env vars.
- * Docs: https://www.mercadopago.com.co/developers/es/docs/your-integrations/notifications/webhooks
+ * A-05: Si MERCADOPAGO_WEBHOOK_SECRET no está configurado, RECHAZA la petición
+ * (en lugar del comportamiento anterior que la aceptaba).
  */
 function verifyMercadoPagoSignature(req: NextRequest, dataId: string): boolean {
-  if (!MP_WEBHOOK_SECRET) return true
+  if (!MP_WEBHOOK_SECRET) {
+    console.error('[webhook] MERCADOPAGO_WEBHOOK_SECRET no configurado — rechazando request')
+    return false
+  }
 
   const xSignature = req.headers.get('x-signature') ?? ''
   const xRequestId = req.headers.get('x-request-id') ?? ''
@@ -32,14 +36,14 @@ function verifyMercadoPagoSignature(req: NextRequest, dataId: string): boolean {
 export async function POST(req: NextRequest) {
   try {
     const rawBody = await req.text()
-    let body: any
+    let body: Record<string, unknown>
     try {
       body = JSON.parse(rawBody)
     } catch {
       return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
     }
 
-    if (body.type !== 'payment' || !body.data?.id) {
+    if (body.type !== 'payment' || !(body.data as Record<string, unknown>)?.id) {
       return NextResponse.json({ ok: true })
     }
 
@@ -47,11 +51,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true })
     }
 
-    const paymentId = String(body.data.id)
+    const paymentId = String((body.data as Record<string, unknown>).id)
 
-    // Verificar firma HMAC antes de procesar
+    // Verificar firma HMAC antes de procesar cualquier lógica
     if (!verifyMercadoPagoSignature(req, paymentId)) {
-      console.error('[webhook] Firma invalida — request no autorizado')
+      console.error('[webhook] Firma inválida — request no autorizado')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -83,7 +87,7 @@ export async function POST(req: NextRequest) {
         .single()
 
       if (order) {
-        const addr = order.shipping_address as any
+        const addr = order.shipping_address as Record<string, string> | null
         const addressStr = addr
           ? addr.nombre_completo + ' - ' + addr.direccion + ', ' + addr.ciudad
           : ''
@@ -91,14 +95,31 @@ export async function POST(req: NextRequest) {
 
         const { data: orderItems } = await db
           .from('order_items')
-          .select('product_name, quantity, price')
+          .select('product_id, product_name, quantity, price')
           .eq('order_id', orderId)
 
-        const items = (orderItems ?? []).map((i: any) => ({
+        const items = (orderItems ?? []).map((i) => ({
           name: i.product_name,
           quantity: i.quantity,
           price: i.price,
         }))
+
+        // ── C-02: Decrementar stock de cada producto ──────────────��────
+        // La función SQL `decrement_stock` debe existir en Supabase:
+        //   CREATE OR REPLACE FUNCTION decrement_stock(p_product_id uuid, p_qty int)
+        //   RETURNS void LANGUAGE sql AS $$
+        //     UPDATE products SET stock = GREATEST(0, stock - p_qty) WHERE id = p_product_id;
+        //   $$;
+        if (orderItems && orderItems.length > 0) {
+          await Promise.allSettled(
+            orderItems.map((item) =>
+              db.rpc('decrement_stock', {
+                p_product_id: item.product_id,
+                p_qty: item.quantity,
+              })
+            )
+          )
+        }
 
         // Verificar si el email ya tiene acceso Wellness (compra repetida)
         const { data: existingAccess } = await db
@@ -111,7 +132,7 @@ export async function POST(req: NextRequest) {
         const isFirstPurchase = !existingAccess
 
         if (isFirstPurchase) {
-          const code = 'NAT-' + Math.random().toString(36).substring(2, 8).toUpperCase()
+          const code = generateCode() // A-02: crypto.randomBytes en lugar de Math.random
 
           await db.from('wellness_access').insert({
             order_id: orderId,
@@ -126,7 +147,7 @@ export async function POST(req: NextRequest) {
             .update({ early_access_sent: true })
             .eq('id', orderId)
 
-          // Primera compra: confirmacion + codigo wellness
+          // Primera compra: confirmación + código wellness
           await Promise.allSettled([
             sendOrderConfirmation({
               to: order.customer_email,
@@ -143,7 +164,7 @@ export async function POST(req: NextRequest) {
             }),
           ])
         } else {
-          // Compra repetida: solo confirmacion de orden
+          // Compra repetida: solo confirmación de orden
           await sendOrderConfirmation({
             to: order.customer_email,
             orderNumber: order.order_number,
@@ -163,7 +184,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true })
   } catch (err) {
-    console.error('MP webhook error:', err)
+    console.error('[webhook] Error inesperado:', err)
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
 }
