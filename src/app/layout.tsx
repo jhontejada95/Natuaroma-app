@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Noto_Serif, Be_Vietnam_Pro } from 'next/font/google'
+import Image from 'next/image'
+import Link from 'next/link'
 import './globals.css'
 import { CartButton } from '@/components/CartButton'
 import { CartDrawer } from '@/components/CartDrawer'
@@ -22,6 +24,11 @@ const beVietnamPro = Be_Vietnam_Pro({
   display: 'swap',
 })
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
+if (!siteUrl) {
+  throw new Error('NEXT_PUBLIC_SITE_URL is required')
+}
+
 export const viewport: Viewport = {
   themeColor: '#223426',
   width: 'device-width',
@@ -31,9 +38,10 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: 'Natuaroma — Bienestar que se siente, se respira y se vive',
-  description: 'Aceites esenciales, velas aromaticas y rituales naturales artesanales 100% hechos en Colombia.',
-  keywords: ['aceites esenciales', 'velas aromaticas', 'bienestar natural', 'aromaterapia', 'Colombia', 'wellness'],
+  metadataBase: new URL(siteUrl),
+  title: 'Natuaroma - Bienestar que se siente, se respira y se vive',
+  description: 'Aceites esenciales, velas aromáticas y rituales naturales artesanales 100% hechos en Colombia.',
+  keywords: ['aceites esenciales', 'velas aromáticas', 'bienestar natural', 'aromaterapia', 'Colombia', 'wellness'],
   manifest: '/manifest.webmanifest',
   appleWebApp: {
     capable: true,
@@ -41,9 +49,9 @@ export const metadata: Metadata = {
     title: 'Natuaroma',
   },
   openGraph: {
-    title: 'Natuaroma — Bienestar que se siente, se respira y se vive',
+    title: 'Natuaroma - Bienestar que se siente, se respira y se vive',
     description: 'Productos naturales artesanales de Colombia.',
-    url: 'https://natuaroma.shop',
+    url: siteUrl,
     siteName: 'Natuaroma',
     locale: 'es_CO',
     type: 'website',
@@ -59,22 +67,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         <header className="fixed top-4 left-4 right-4 z-50 max-w-7xl mx-auto">
           <div className="rounded-full px-6 py-3 bg-surface/80 backdrop-blur-md ambient-shadow flex justify-between items-center">
-            <a href="/" className="flex items-center">
-              <img src="/logo.png" alt="Natuaroma" className="h-10 md:h-12 w-auto object-contain" />
-            </a>
+            <Link href="/" className="flex items-center">
+              <Image src="/logo.png" alt="Natuaroma" width={180} height={48} className="h-10 md:h-12 w-auto object-contain" priority />
+            </Link>
             <nav className="hidden md:flex gap-8 items-center">
               {[
                 { href: '/tienda', label: 'Tienda' },
                 { href: '/nosotros', label: 'Nosotros' },
                 { href: '/wellness', label: 'Wellness' },
               ].map(({ href, label }) => (
-                <a
+                <Link
                   key={href}
                   href={href}
                   className="text-sm text-on-surface-variant hover:text-primary transition-colors duration-300 font-body"
                 >
                   {label}
-                </a>
+                </Link>
               ))}
             </nav>
             <div className="flex items-center gap-2">
@@ -114,10 +122,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   {[
                     { href: '/tienda', label: 'Todos los productos' },
                     { href: '/tienda?categoria=Aceites', label: 'Aceites esenciales' },
-                    { href: '/tienda?categoria=Velas', label: 'Velas aromaticas' },
+                    { href: '/tienda?categoria=Velas', label: 'Velas aromáticas' },
                   ].map(({ href, label }) => (
                     <li key={href}>
-                      <a href={href} className="text-sm text-inverse-on-surface/60 hover:text-inverse-on-surface transition-colors">{label}</a>
+                      <Link href={href} className="text-sm text-inverse-on-surface/60 hover:text-inverse-on-surface transition-colors">{label}</Link>
                     </li>
                   ))}
                 </ul>
@@ -130,24 +138,28 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     { href: '/wellness', label: 'Portal Wellness' },
                     { href: '/wellness/activar', label: 'Activar acceso' },
                     { href: '/wellness/biblioteca', label: 'Biblioteca' },
-                    { href: '/wellness/habitos', label: 'Habitos diarios' },
+                    { href: '/wellness/habitos', label: 'Hábitos diarios' },
                   ].map(({ href, label }) => (
                     <li key={href}>
-                      <a href={href} className="text-sm text-inverse-on-surface/60 hover:text-inverse-on-surface transition-colors">{label}</a>
+                      <Link href={href} className="text-sm text-inverse-on-surface/60 hover:text-inverse-on-surface transition-colors">{label}</Link>
                     </li>
                   ))}
                 </ul>
               </div>
 
               <div>
-                <p className="text-xs uppercase tracking-widest font-semibold text-inverse-on-surface/40 mb-4">Informacion</p>
+                <p className="text-xs uppercase tracking-widest font-semibold text-inverse-on-surface/40 mb-4">Información</p>
                 <ul className="space-y-2">
                   {[
                     { href: '/nosotros', label: 'Nosotros' },
                     { href: 'mailto:hola@natuaroma.co', label: 'Contacto' },
                   ].map(({ href, label }) => (
                     <li key={href}>
-                      <a href={href} className="text-sm text-inverse-on-surface/60 hover:text-inverse-on-surface transition-colors">{label}</a>
+                      {href.startsWith('/') ? (
+                        <Link href={href} className="text-sm text-inverse-on-surface/60 hover:text-inverse-on-surface transition-colors">{label}</Link>
+                      ) : (
+                        <a href={href} className="text-sm text-inverse-on-surface/60 hover:text-inverse-on-surface transition-colors">{label}</a>
+                      )}
                     </li>
                   ))}
                 </ul>

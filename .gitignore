@@ -45,3 +45,12 @@ next-env.d.ts
 # Documentos privados
 ACCESOS-*.txt
 *.private.*
+
+# Artefactos locales de auditoria/contexto
+CONTEXTO_CHAT.md
+CONTEXTO_CHAT*.md
+AUDITORIA_SEGURIDAD.html
+AUDITORIA_*.html
+natuaroma-qa.docx
+*-qa.docx
+CLAUDE.md
