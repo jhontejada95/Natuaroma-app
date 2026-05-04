@@ -2,12 +2,20 @@ import { createClient } from '@/lib/supabase/server'
 import { submitPhysicalRegistration } from './actions'
 import { Leaf, CheckCircle } from 'lucide-react'
 
+const LOCATION_LABELS: Record<string, string> = {
+  salento:    'Tienda Salento',
+  armenia_cc: 'Armenia (Centro Comercial)',
+  equipo:     'Invitación del equipo',
+}
+
 export default async function RegistroPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; success?: string }>
+  searchParams: Promise<{ error?: string; success?: string; source?: string }>
 }) {
   const params = await searchParams
+  const source = params.source ?? ''
+  const locationLabel = LOCATION_LABELS[source] ?? null
   const supabase = await createClient()
   const { data: products } = await supabase
     .from('products')
@@ -64,6 +72,18 @@ export default async function RegistroPage({
         )}
 
         <form action={submitPhysicalRegistration} className="space-y-6">
+          {/* Campo oculto con el punto de origen del QR */}
+          <input type="hidden" name="location" value={source} />
+
+          {/* Mostrar ubicación si viene de un QR conocido */}
+          {locationLabel && (
+            <div className="flex items-center gap-2 bg-primary-fixed/20 border border-primary/20 rounded-xl px-4 py-3">
+              <span className="text-primary text-sm">📍</span>
+              <p className="text-sm text-on-surface-variant">
+                Registrándote desde: <span className="font-semibold text-primary">{locationLabel}</span>
+              </p>
+            </div>
+          )}
           {/* Nombre */}
           <div>
             <label htmlFor="name" className="block font-body text-xs uppercase tracking-widest text-on-surface-variant mb-2">
@@ -113,6 +133,27 @@ export default async function RegistroPage({
             </div>
             <p className="font-body text-xs text-outline mt-2">Selecciona todos los productos que compraste.</p>
           </div>
+
+          {/* Consentimiento de datos — Ley 1581 */}
+          <label className="flex items-start gap-3 cursor-pointer group">
+            <input
+              type="checkbox"
+              name="consent"
+              required
+              className="w-4 h-4 accent-primary mt-0.5 flex-shrink-0"
+            />
+            <span className="font-body text-xs text-on-surface-variant leading-relaxed">
+              Acepto el{' '}
+              <a
+                href="/politica-de-datos"
+                target="_blank"
+                className="text-primary underline underline-offset-2 hover:text-primary/80"
+              >
+                tratamiento de mis datos personales
+              </a>{' '}
+              conforme a la Ley 1581 de 2012.
+            </span>
+          </label>
 
           <button
             type="submit"

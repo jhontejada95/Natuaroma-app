@@ -28,6 +28,12 @@ export default async function AdminWellnessPage({
     invitation: 'Invitacion',
   }
 
+  const locationLabel: Record<string, string> = {
+    salento:    'Salento',
+    armenia_cc: 'Armenia (C.C.)',
+    equipo:     'Equipo',
+  }
+
   return (
     <div className="p-8 space-y-8 max-w-7xl mx-auto">
       {/* Header */}
@@ -75,6 +81,11 @@ export default async function AdminWellnessPage({
                   <p className="text-xs text-on-surface-variant">{c.user_email}</p>
                   {Array.isArray(c.products_claimed) && c.products_claimed.length > 0 && (
                     <p className="text-xs text-outline">Productos: {c.products_claimed.join(', ')}</p>
+                  )}
+                  {c.location && (
+                    <p className="text-xs text-outline">
+                      📍 {locationLabel[c.location] ?? c.location}
+                    </p>
                   )}
                   <p className="text-xs text-outline">
                     {new Date(c.created_at).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}

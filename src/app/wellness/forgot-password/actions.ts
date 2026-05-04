@@ -2,9 +2,17 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { isRateLimited } from '@/lib/ratelimit'
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 
 export async function sendWellnessPasswordReset(formData: FormData) {
+  const headersList = await headers()
+  const ip = headersList.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'anonymous'
+  if (await isRateLimited('forgot_password', ip)) {
+    redirect('/wellness/forgot-password?error=Demasiados intentos. Espera unos minutos.')
+  }
+
   const email = (formData.get('email') as string).trim().toLowerCase()
 
   if (!email) {

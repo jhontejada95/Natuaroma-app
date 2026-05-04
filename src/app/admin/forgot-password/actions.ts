@@ -1,7 +1,9 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { isRateLimited } from '@/lib/ratelimit'
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 
 // Emails con permiso de admin (misma fuente que login)
 const ALLOWED_ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? 'jhontejada95@gmail.com')
@@ -10,6 +12,12 @@ const ALLOWED_ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? 'jhontejada95@gmail.co
   .filter(Boolean)
 
 export async function sendAdminPasswordReset(formData: FormData) {
+  const headersList = await headers()
+  const ip = headersList.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'anonymous'
+  if (await isRateLimited('forgot_password', ip)) {
+    redirect('/admin/forgot-password?error=Demasiados intentos. Espera unos minutos.')
+  }
+
   const email = (formData.get('email') as string).trim().toLowerCase()
 
   if (!email) {

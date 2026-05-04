@@ -35,6 +35,12 @@ export async function submitPhysicalRegistration(formData: FormData) {
   const name = (formData.get('name') as string).trim()
   const email = (formData.get('email') as string).toLowerCase().trim()
   const productsRaw = formData.getAll('products') as string[]
+  const location = (formData.get('location') as string | null)?.trim() ?? ''
+  const consent = formData.get('consent')
+
+  if (!consent) {
+    redirect('/registro?error=Debes aceptar la política de tratamiento de datos para continuar.')
+  }
 
   if (!name || !email || productsRaw.length === 0) {
     redirect('/registro?error=Completa todos los campos y selecciona al menos un producto.')
@@ -62,6 +68,7 @@ export async function submitPhysicalRegistration(formData: FormData) {
     requester_name: name,
     products_claimed: productsRaw,
     source: 'physical',
+    location: location || null,
     status: 'pending',
     order_id: null,
   })
@@ -71,10 +78,18 @@ export async function submitPhysicalRegistration(formData: FormData) {
     redirect('/registro?error=Ocurrió un error. Intenta de nuevo.')
   }
 
+  const locationLabels: Record<string, string> = {
+    salento:    'Tienda Salento',
+    armenia_cc: 'Armenia (C.C.)',
+    equipo:     'Invitación del equipo',
+  }
+  const locationText = location ? (locationLabels[location] ?? location) : 'Sin especificar'
+
   const msg =
     '<b>Nueva solicitud física</b>\n\n' +
     '<b>Nombre:</b> ' + name + '\n' +
     '<b>Correo:</b> ' + email + '\n' +
+    '<b>Punto de origen:</b> ' + locationText + '\n' +
     '<b>Productos:</b> ' + productsRaw.join(', ') + '\n\n' +
     'Aprueba en: https://www.natuaroma.shop/admin/wellness'
 

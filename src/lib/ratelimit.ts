@@ -17,11 +17,13 @@ type RateLimitResult = { success: boolean; limit: number; remaining: number }
 
 // Límites por ruta (requests / ventana de tiempo)
 export const LIMITS = {
-  checkout:  { requests: 5,  window: '1 m'  }, // 5 intentos por minuto
-  login:     { requests: 10, window: '1 m'  }, // 10 intentos por minuto
-  registro:  { requests: 3,  window: '5 m'  }, // 3 intentos cada 5 minutos
-  activar:   { requests: 10, window: '1 m'  }, // 10 intentos por minuto
-  webhook:   { requests: 60, window: '1 m'  }, // 60 peticiones por minuto
+  checkout:        { requests: 5,  window: '1 m'  }, // 5 intentos por minuto
+  login:           { requests: 10, window: '1 m'  }, // 10 intentos por minuto
+  registro:        { requests: 3,  window: '5 m'  }, // 3 intentos cada 5 minutos
+  activar:         { requests: 10, window: '1 m'  }, // 10 intentos por minuto
+  webhook:         { requests: 60, window: '1 m'  }, // 60 peticiones por minuto
+  forgot_password: { requests: 3,  window: '5 m'  }, // 3 intentos cada 5 minutos
+  reset_password:  { requests: 5,  window: '5 m'  }, // 5 intentos cada 5 minutos
 } as const
 
 type LimitKey = keyof typeof LIMITS
